@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'quiz_screen.dart';
+import 'package:fyp_ui_design/screens/quiz/quiz_screen.dart';
 
 class QuizListScreen extends StatelessWidget {
   final String university;
@@ -26,7 +26,7 @@ class QuizListScreen extends StatelessWidget {
         backgroundColor: Colors.lightBlue,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: Text('$department • Semester $semester'),
+        title: Text('Quiz Found'),
       ),
       body: Column(
         children: [
@@ -41,7 +41,7 @@ class QuizListScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "$department • Semester $semester",
+                  "$university • $campus • $department • Semester $semester",
                   style: TextStyle(color: Colors.grey),
                 ),
               ],
@@ -82,9 +82,77 @@ class QuizListScreen extends StatelessWidget {
                     final questions =
                         (quiz['questions'] ?? []) as List<dynamic>;
 
-                    return ListTile(
-                      title: Text(quiz['subject'] ?? 'Quiz'),
-                      subtitle: Text('${questions.length} Questions'),
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => QuizScreen(
+                              quizId: quizzes[i].id, // 🔥 important
+                              quizData: questions,
+                              isEditable: false,
+                              subject: quiz['subject'],
+                              department: quiz['department'],
+                              semester: quiz['semester'],
+                              university: quiz['university'],
+                              campus: quiz['location'],
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            // 📘 Icon
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.lightBlue.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(Icons.quiz, color: Colors.lightBlue),
+                            ),
+
+                            const SizedBox(width: 12),
+
+                            // 📄 Text info
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    quiz['subject'] ?? 'Quiz',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${questions.length} Questions',
+                                    style: TextStyle(color: Colors.grey.shade600),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // ➡️ Arrow
+                            const Icon(Icons.arrow_forward_ios, size: 16),
+                          ],
+                        ),
+                      ),
                     );
                   },
                 );

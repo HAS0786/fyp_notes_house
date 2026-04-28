@@ -71,7 +71,12 @@ class QuizPerformanceScreen extends StatelessWidget {
             }
           }
 
-          final avgAccuracy = (totalAccuracy / docs.length).round();
+          final avgAccuracy = docs.isNotEmpty
+              ? (totalAccuracy / docs.length).round()
+              : 0;
+          int maxAccuracy = docs
+              .map((d) => int.tryParse((d.data() as Map)['accuracy'].toString()) ?? 0)
+              .reduce((a, b) => a > b ? a : b);
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -82,7 +87,7 @@ class QuizPerformanceScreen extends StatelessWidget {
                 Row(
                   children: [
                     _summaryCard(
-                      'Attempts',
+                      'Total Attempts',
                       docs.length.toString(),
                       Icons.assignment,
                     ),
@@ -91,6 +96,12 @@ class QuizPerformanceScreen extends StatelessWidget {
                       'Avg Accuracy',
                       '$avgAccuracy%',
                       Icons.trending_up,
+                    ),
+                    const SizedBox(width: 12),
+                    _summaryCard(
+                      'Best Score',
+                      '$maxAccuracy%',
+                      Icons.star,
                     ),
                   ],
                 ),
@@ -156,7 +167,19 @@ class QuizPerformanceScreen extends StatelessWidget {
       ),
     );
   }
-
+  Widget _legend(String text, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          color: color,
+        ),
+        const SizedBox(width: 4),
+        Text(text),
+      ],
+    );
+  }
   Widget _section({
     required String title,
     required String description,
@@ -192,190 +215,258 @@ class QuizPerformanceScreen extends StatelessWidget {
   // ================= CHARTS =================
 
   Widget _lineChart(List<FlSpot> spots) {
-    return SizedBox(
-      height: 240,
-      child: LineChart(
-        LineChartData(
-          minY: 0,
-          maxY: 100,
-          gridData: FlGridData(
-            show: true,
-            horizontalInterval: 20,
-            getDrawingHorizontalLine: (value) => FlLine(
-              color: Colors.grey.withValues(alpha: 0.2),
-              strokeWidth: 1,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          width: spots.length * 60,
+          height: 240,
+          child: LineChart(
+            LineChartData(
+              minY: 0,
+              maxY: 100,
+              gridData: FlGridData(
+                show: true,
+                horizontalInterval: 20,
+                getDrawingHorizontalLine: (value) => FlLine(
+                  color: Colors.grey.withOpacity(0.2),
+                  strokeWidth: 1,
+                ),
+              ),
+              lineTouchData: LineTouchData(
+                enabled: true,
+                touchTooltipData: LineTouchTooltipData(
+                  getTooltipItems: (touchedSpots) {
+                    return touchedSpots.map((spot) {
+                      return LineTooltipItem(
+                          '${spot.y.isFinite ? spot.y.toInt() : 0}%',
+                        const TextStyle(color: Colors.white),
+                      );
+                    }).toList();
+                  },
+                ),
+              ),
+              titlesData: FlTitlesData(
+                topTitles: AxisTitles(
+                sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  final index = value.isFinite ? value.toInt() : 0;
+                  if (index >= spots.length) return const SizedBox();
+
+                  final y = spots[index].y;
+                  return Text(
+                    '${y.isFinite ? y.toInt() : 0}%',
+                    style: const TextStyle(fontSize: 10),
+                  );
+                },
+              ),
+            ),
+                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    interval: 20,
+                    reservedSize: 40,
+                    getTitlesWidget: (value, _) => Text(
+                      '${value.isFinite ? value.toInt() : 0}%',
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                  ),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    interval: 1,
+                    getTitlesWidget: (value, _) => Text(
+                     'Atmp${(value.isFinite ? value.toInt() : 0) + 1}',
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                  ),
+                ),
+              ),
+              borderData: FlBorderData(show: false),
+              lineBarsData: [
+                LineChartBarData(
+                  spots: spots,
+                  isCurved: true,
+                  curveSmoothness: 0.25,
+                  barWidth: 3.5,
+                  color: Colors.blue,
+                  dotData: FlDotData(
+                    show: true,
+                    getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(
+                      radius: 4,
+                      color: Colors.white,
+                      strokeWidth: 3,
+                      strokeColor: Colors.blue,
+                    ),
+                  ),
+                  belowBarData: BarAreaData(
+                    show: true,
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.blue.withOpacity(0.2),
+                        Colors.blue.withOpacity(0.2),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+
+                ),
+              ],
             ),
           ),
-          titlesData: FlTitlesData(
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                interval: 20,
-                getTitlesWidget: (value, _) => Text(
-                  '${value.toInt()}%',
-                  style: const TextStyle(fontSize: 10),
-                ),
-              ),
-            ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                interval: 1,
-                getTitlesWidget: (value, _) => Text(
-                  'Atmp${value.toInt() + 1}',
-                  style: const TextStyle(fontSize: 10),
-                ),
-              ),
-            ),
-          ),
-          borderData: FlBorderData(show: false),
-          lineBarsData: [
-            LineChartBarData(
-              spots: spots,
-              isCurved: true,
-              curveSmoothness: 0.25,
-              barWidth: 3.5,
-              color: Colors.blue,
-              dotData: FlDotData(
-                show: true,
-                getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(
-                  radius: 4,
-                  color: Colors.white,
-                  strokeWidth: 3,
-                  strokeColor: Colors.blue,
-                ),
-              ),
-              belowBarData: BarAreaData(
-                show: true,
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.blue.withValues(alpha: 0.2),
-                    Colors.blue.withValues(alpha: 0.2),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );
   }
 
   Widget _barChart(List<BarChartGroupData> bars) {
-    return SizedBox(
-      height: 240,
-      child: BarChart(
-        BarChartData(
-          maxY: 100,
-          alignment: BarChartAlignment.spaceAround,
-          gridData: FlGridData(
-            show: true,
-            horizontalInterval: 20,
-            getDrawingHorizontalLine: (value) => FlLine(
-              color: Colors.grey.withValues(alpha: 0.2),
-              strokeWidth: 1,
-            ),
-          ),
-          titlesData: FlTitlesData(
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                interval: 20,
-                getTitlesWidget: (value, _) => Text(
-                  '${value.toInt()}%',
-                  style: const TextStyle(fontSize: 10),
-                ),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: SizedBox(
+        width: bars.length * 60,
+        height: 240,
+        child: BarChart(
+          BarChartData(
+            maxY: 100,
+            alignment: BarChartAlignment.spaceAround,
+            gridData: FlGridData(
+              show: true,
+              horizontalInterval: 20,
+              getDrawingHorizontalLine: (value) => FlLine(
+                color: Colors.grey.withOpacity(0.2),
+                strokeWidth: 1,
               ),
             ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, _) => Text(
-                  'Atmp${value.toInt() + 1}', // Attempt label
-                  style: const TextStyle(fontSize: 10),
+            titlesData: FlTitlesData(
+              topTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (value, meta) {
+                    final index = value.isFinite ? value.toInt() : 0;
+                    if (index >= bars.length) return const SizedBox();
+
+                    final y = bars[index].barRods.first.toY;
+                    return Text(
+                      '${y.isFinite ? y.toInt() : 0}%',
+                      style: const TextStyle(fontSize: 10),
+                    );
+                  },
                 ),
               ),
-            ),
-          ),
-          borderData: FlBorderData(show: false),
-          barGroups: bars.map((group) {
-            final y = group.barRods.first.toY;
-
-            // Force visibility for 0%
-            final double safeY = y == 0 ? 2 : y;
-
-            Color barColor;
-            if (y >= 75) {
-              barColor = Colors.blueAccent;
-            } else if (y >= 50) {
-              barColor = Colors.orange;
-            } else {
-              barColor = Colors.red;
-            }
-
-            return BarChartGroupData(
-              x: group.x,
-              barRods: [
-                BarChartRodData(
-                  toY: safeY,
-                  width: 18,
-                  borderRadius: BorderRadius.circular(8),
-                  gradient: LinearGradient(
-                    colors: [
-                      barColor.withAlpha(230),
-                      barColor.withAlpha(128),
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
+              rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  interval: 20,
+                  getTitlesWidget: (value, _) => Text(
+                      '${value.isFinite ? value.toInt() : 0}%',
+                    style: const TextStyle(fontSize: 10),
                   ),
                 ),
-              ],
-            );
-          }).toList(),
+              ),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (value, _) => Text(
+                    'Atmp${(value.isFinite ? value.toInt() : 0) + 1}',
+                    style: const TextStyle(fontSize: 10),
+                  ),
+                ),
+              ),
+            ),
+            borderData: FlBorderData(show: false),
+            barGroups: bars.map((group) {
+              final y = group.barRods.first.toY;
+
+              // Force visibility for 0%
+              final double safeY = y.isFinite ? (y == 0 ? 2 : y) : 0;
+              Color barColor;
+              if (y >= 75) {
+                barColor = Colors.blueAccent;
+              } else if (y >= 50) {
+                barColor = Colors.orange;
+              } else {
+                barColor = Colors.red;
+              }
+
+              return BarChartGroupData(
+                x: group.x,
+                barRods: [
+                  BarChartRodData(
+                    toY: safeY,
+                    width: 18,
+                    borderRadius: BorderRadius.circular(8),
+                    gradient: LinearGradient(
+                      colors: [
+                        barColor.withAlpha(230),
+                        barColor.withAlpha(128),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
         ),
       ),
     );
   }
 
   Widget _pieChart(int excellent, int average, int poor) {
-    return SizedBox(
-      height: 220,
-      child: PieChart(
-        PieChartData(
-          centerSpaceRadius: 40,
-          sectionsSpace: 4,
-          sections: [
-            PieChartSectionData(
-              value: excellent.toDouble(),
-              title: 'Excellent',
-              color: Colors.green,
-              radius: 50,
+    return Column(
+      children: [
+        SizedBox(
+          height: 220,
+          child: PieChart(
+            PieChartData(
+              centerSpaceRadius: 40,
+              sectionsSpace: 4,
+              sections: [
+                PieChartSectionData(
+                  value: excellent.toDouble(),
+                  title: '$excellent',
+                  color: Colors.green,
+                  radius: 50,
+                ),
+                PieChartSectionData(
+                  value: average.toDouble(),
+                  title: '$average',
+                  color: Colors.orange,
+                  radius: 50,
+                ),
+                PieChartSectionData(
+                  value: poor.toDouble(),
+                  title: '$poor',
+                  color: Colors.red,
+                  radius: 50,
+                ),
+              ],
             ),
-            PieChartSectionData(
-              value: average.toDouble(),
-              title: 'Average',
-              color: Colors.orange,
-              radius: 50,
-            ),
-            PieChartSectionData(
-              value: poor.toDouble(),
-              title: 'Poor',
-              color: Colors.red,
-              radius: 50,
-            ),
+          ),
+        ),
+
+        const SizedBox(height: 10),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _legend('Excellent', Colors.green),
+            _legend('Average', Colors.orange),
+            _legend('Poor', Colors.red),
           ],
         ),
-      ),
+      ],
     );
   }
 }

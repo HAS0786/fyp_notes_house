@@ -163,8 +163,7 @@ class QuizResultScreen extends StatelessWidget {
                     final q = entry.value;
 
                     final List options = q['options'];
-                    final int correctIndex =
-                    int.parse(q['correct'].toString());
+                    int correctIndex = int.tryParse(q['correct']?.toString() ?? '') ?? -1;
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 16),

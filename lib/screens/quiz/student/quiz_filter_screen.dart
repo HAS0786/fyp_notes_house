@@ -16,38 +16,82 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
   String? subject;
   int? semester;
 
-  // 🔥 SEMESTER FROM QUIZZES
-  Stream<List<int>> getSemesters() {
+  /// 🔹 UNIVERSITY STREAM
+  Stream<List<String>> universitiesStream() {
+    return FirebaseFirestore.instance
+        .collection('universities')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+        .map((doc) => doc['name'].toString())
+        .toSet()
+        .toList());
+  }
+
+  /// 🔹 CAMPUS (DEPENDENT ON UNIVERSITY)
+  Stream<List<String>> locationsStream() {
+    if (university == null) return const Stream.empty();
+
+    return FirebaseFirestore.instance
+        .collection('universities')
+        .where('name', isEqualTo: university)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+        .map((doc) => doc['location'].toString())
+        .toSet()
+        .toList());
+  }
+
+  /// 🔹 DEPARTMENT (DEPENDENT ON UNIVERSITY + CAMPUS)
+  Stream<List<String>> departmentsStream() {
+    if (university == null || campus == null) {
+      return const Stream.empty();
+    }
+
+    return FirebaseFirestore.instance
+        .collection('departments')
+        .where('university', isEqualTo: university)
+        .where('location', isEqualTo: campus)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+        .map((doc) => doc['name'].toString())
+        .toSet()
+        .toList());
+  }
+
+  /// 🔹 SEMESTER (FROM QUIZZES)
+  Stream<List<int>> semestersStream() {
     Query query = FirebaseFirestore.instance.collection('quizzes');
 
     if (university != null) {
       query = query.where('university', isEqualTo: university);
     }
-    if (department != null) {
-      query = query.where('department', isEqualTo: department);
-    }
     if (campus != null) {
       query = query.where('location', isEqualTo: campus);
     }
+    if (department != null) {
+      query = query.where('department', isEqualTo: department);
+    }
 
     return query.snapshots().map((snapshot) {
-      final values = snapshot.docs
+      return snapshot.docs
           .map((doc) => doc['semester'])
           .where((e) => e != null)
           .cast<int>()
           .toSet()
           .toList()
         ..sort();
-      return values;
     });
   }
 
-  // 🔥 SUBJECT FROM QUIZZES
-  Stream<List<String>> getSubjects() {
+  /// 🔹 SUBJECT (FROM QUIZZES)
+  Stream<List<String>> subjectsStream() {
     Query query = FirebaseFirestore.instance.collection('quizzes');
 
     if (university != null) {
       query = query.where('university', isEqualTo: university);
+    }
+    if (campus != null) {
+      query = query.where('location', isEqualTo: campus);
     }
     if (department != null) {
       query = query.where('department', isEqualTo: department);
@@ -55,40 +99,16 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
     if (semester != null) {
       query = query.where('semester', isEqualTo: semester);
     }
-    if (campus != null) {
-      query = query.where('location', isEqualTo: campus);
-    }
 
     return query.snapshots().map((snapshot) {
-      final values = snapshot.docs
+      return snapshot.docs
           .map((doc) => doc['subject'].toString())
           .toSet()
           .toList();
-      return values;
     });
   }
 
-  // 🔥 CAMPUS FROM QUIZZES
-  Stream<List<String>> getCampuses() {
-    Query query = FirebaseFirestore.instance.collection('quizzes');
-
-    if (university != null) {
-      query = query.where('university', isEqualTo: university);
-    }
-
-    return query.snapshots().map((snapshot) {
-      final values = snapshot.docs
-          .map((doc) => doc.data() as Map<String, dynamic>)
-          .map((data) => data['location'])
-          .where((e) => e != null && e.toString().isNotEmpty)
-          .map((e) => e.toString())
-          .toSet()
-          .toList();
-
-      return values;
-    });
-  }
-
+  /// 🔍 SEARCH
   void search() {
     if (university == null ||
         campus == null ||
@@ -117,161 +137,180 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
+    return Scaffold(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
 
-          // 🔹 UNIVERSITY (FROM COLLECTION)
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('universities')
-                .orderBy('name')
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const CircularProgressIndicator();
-              }
-
-              return DropdownButtonFormField<String>(
-                hint: const Text("Select University"),
-                value: university,
-                items:snapshot.data!.docs.map<DropdownMenuItem<String>>((doc) {
-                  final name = doc['name'].toString();
-
-                  return DropdownMenuItem<String>(
-                    value: name,
-                    child: Text(name),
-                  );
-                }).toList(),
-                onChanged: (v) {
-                  setState(() {
-                    university = v;
-                    campus = null;
-                    department = null;
-                    subject = null;
-                    semester = null;
-                  });
-                },
-              );
-            },
-          ),
-
-          const SizedBox(height: 12),
-
-          // 🔹 CAMPUS
-          StreamBuilder<List<String>>(
-            stream: getCampuses(),
-            builder: (context, snapshot) {
-              final data = snapshot.data ?? [];
-
-              return DropdownButtonFormField<String>(
-                hint: const Text("Select Campus"),
-                value: campus,
-                items: data.map((e) {
-                  return DropdownMenuItem(value: e, child: Text(e));
-                }).toList(),
-                onChanged: (v) {
-                  setState(() {
-                    campus = v;
-                    semester = null;
-                    subject = null;
-                  });
-                },
-              );
-            },
-          ),
-
-          const SizedBox(height: 12),
-
-          // 🔹 DEPARTMENT (FROM COLLECTION)
-          if (university != null)
-            StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('departments')
-                  .where('university', isEqualTo: university)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const CircularProgressIndicator();
-                }
-
-                return DropdownButtonFormField<String>(
-                  hint: const Text("Select Department"),
-                  value: department,
-                  items:snapshot.data!.docs.map<DropdownMenuItem<String>>((doc) {
-                    final name = doc['name'].toString();
-                    return DropdownMenuItem<String>(
-                      value: name,
-                      child: Text(name),
-                    );
-                  }).toList(),
-                  onChanged: (v) {
-                    setState(() {
-                      department = v;
-                      semester = null;
-                      subject = null;
-                    });
-                  },
-                );
-              },
-            ),
-
-          const SizedBox(height: 12),
-
-          // 🔹 SEMESTER
-          StreamBuilder<List<int>>(
-            stream: getSemesters(),
-            builder: (context, snapshot) {
-              final data = snapshot.data ?? [];
-
-              return DropdownButtonFormField<int>(
-                hint: const Text("Select Semester"),
-                value: semester,
-                items: data.map((e) {
-                  return DropdownMenuItem(
-                    value: e,
-                    child: Text("Semester $e"),
-                  );
-                }).toList(),
-                onChanged: (v) => setState(() => semester = v),
-              );
-            },
-          ),
-
-          const SizedBox(height: 12),
-
-          // 🔹 SUBJECT
-          StreamBuilder<List<String>>(
-            stream: getSubjects(),
-            builder: (context, snapshot) {
-              final data = snapshot.data ?? [];
-
-              return DropdownButtonFormField<String>(
-                hint: const Text("Select Subject"),
-                value: subject,
-                items: data.map((e) {
-                  return DropdownMenuItem(value: e, child: Text(e));
-                }).toList(),
-                onChanged: (v) => setState(() => subject = v),
-              );
-            },
-          ),
-
-          const SizedBox(height: 20),
-
-          // 🔹 SEARCH BUTTON (UNCHANGED)
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: search,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
+            /// 🔥 QUIZ INFO CARD
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text("Search Quiz"),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+
+                    const Text(
+                      "Quiz Information",
+                      style:
+                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const Divider(),
+
+                    /// 🔹 UNIVERSITY
+                    StreamBuilder<List<String>>(
+                      stream: universitiesStream(),
+                      builder: (context, snapshot) {
+                        final data = snapshot.data ?? [];
+
+                        return DropdownButtonFormField<String>(
+                          value: data.contains(university) ? university : null,
+                          hint: const Text("Select University"),
+                          items: data.map((e) {
+                            return DropdownMenuItem(
+                                value: e, child: Text(e));
+                          }).toList(),
+                          onChanged: (v) {
+                            setState(() {
+                              university = v;
+                              campus = null;
+                              department = null;
+                              subject = null;
+                              semester = null;
+                            });
+                          },
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    /// 🔹 CAMPUS
+                    StreamBuilder<List<String>>(
+                      stream: locationsStream(),
+                      builder: (context, snapshot) {
+                        final data = snapshot.data ?? [];
+
+                        return DropdownButtonFormField<String>(
+                          value: data.contains(campus) ? campus : null,
+                          hint: const Text("Select Campus"),
+                          items: data.map((e) {
+                            return DropdownMenuItem(
+                                value: e, child: Text(e));
+                          }).toList(),
+                          onChanged: (v) {
+                            setState(() {
+                              campus = v;
+                              department = null;
+                              subject = null;
+                              semester = null;
+                            });
+                          },
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    /// 🔹 DEPARTMENT
+                    StreamBuilder<List<String>>(
+                      stream: departmentsStream(),
+                      builder: (context, snapshot) {
+                        final data = snapshot.data ?? [];
+
+                        return DropdownButtonFormField<String>(
+                          value: data.contains(department)
+                              ? department
+                              : null,
+                          hint: const Text("Select Department"),
+                          items: data.map((e) {
+                            return DropdownMenuItem(
+                                value: e, child: Text(e));
+                          }).toList(),
+                          onChanged: (v) {
+                            setState(() {
+                              department = v;
+                              subject = null;
+                              semester = null;
+                            });
+                          },
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    /// 🔹 SEMESTER
+                    StreamBuilder<List<int>>(
+                      stream: semestersStream(),
+                      builder: (context, snapshot) {
+                        final data = snapshot.data ?? [];
+
+                        return DropdownButtonFormField<int>(
+                          value:
+                          data.contains(semester) ? semester : null,
+                          hint: const Text("Select Semester"),
+                          items: data.map((e) {
+                            return DropdownMenuItem(
+                              value: e,
+                              child: Text("Semester $e"),
+                            );
+                          }).toList(),
+                          onChanged: (v) {
+                            setState(() {
+                              semester = v;
+                              subject = null;
+                            });
+                          },
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    /// 🔹 SUBJECT
+                    StreamBuilder<List<String>>(
+                      stream: subjectsStream(),
+                      builder: (context, snapshot) {
+                        final data = snapshot.data ?? [];
+
+                        return DropdownButtonFormField<String>(
+                          value: data.contains(subject) ? subject : null,
+                          hint: const Text("Select Subject"),
+                          items: data.map((e) {
+                            return DropdownMenuItem(
+                                value: e, child: Text(e));
+                          }).toList(),
+                          onChanged: (v) {
+                            setState(() {
+                              subject = v;
+                            });
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ],
+
+            const SizedBox(height: 20),
+
+            /// 🔍 SEARCH BUTTON
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: search,
+                child: const Text("Search Quiz"),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

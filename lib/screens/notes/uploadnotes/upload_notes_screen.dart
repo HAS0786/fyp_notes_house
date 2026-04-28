@@ -88,31 +88,32 @@
                 if (text.isEmpty) return;
   
                 final db = FirebaseFirestore.instance;
-  
+
                 if (type == 'University') {
-                  final docId = '${text}_${locationCtrl.text.trim()}'
-                      .toLowerCase();
-  
+                  final docId = text.toLowerCase(); // ❗ REMOVE location dependency
+
                   await db.collection('universities').doc(docId).set({
                     'name': normalize(text),
-                    'location': normalize(locationCtrl.text),
+                    'location': "", // empty initially
                     'createdAt': FieldValue.serverTimestamp(),
                   }, SetOptions(merge: true));
-  
-                  selectedUniversity = text;
+
+                  setState(() {
+                    selectedUniversity = normalize(text);
+                  });
                 }
                 if (type == 'Location') {
                   final loc = normalize(text);
-  
-                  final docId = '${selectedUniversity}_$loc'.toLowerCase();
-  
-                  await db.collection('universities').doc(docId).set({
-                    'name': selectedUniversity,
+
+                  final docId = selectedUniversity!.toLowerCase();
+
+                  await db.collection('universities').doc(docId).update({
                     'location': loc,
-                    'createdAt': FieldValue.serverTimestamp(),
-                  }, SetOptions(merge: true));
-  
-                  locationCtrl.text = loc;
+                  });
+
+                  setState(() {
+                    locationCtrl.text = loc;
+                  });
                 }
   
                 if (type == 'Department') {
@@ -126,8 +127,10 @@
                     'location': locationCtrl.text.trim(),
                     'createdAt': FieldValue.serverTimestamp(),
                   }, SetOptions(merge: true));
-  
-                  selectedDepartment = text;
+
+                  setState(() {
+                    selectedDepartment = text;
+                  });
                 }
   
                 if (type == 'Course') {
@@ -138,8 +141,10 @@
                     'department': selectedDepartment,
                     'createdAt': FieldValue.serverTimestamp(),
                   }, SetOptions(merge: true));
-  
-                  selectedCourse = text;
+
+                  setState(() {
+                    selectedCourse = text;
+                  });
                 }
   
                 setState(() {});
@@ -152,8 +157,20 @@
       );
     }
     String normalize(String input) {
-      input = input.trim().toLowerCase();
-      return input[0].toUpperCase() + input.substring(1);
+      input = input.trim();
+      if (input.isEmpty) return "";
+
+      List<String> words = input.split(' ');
+      List<String> result = [];
+
+      for (var word in words) {
+        if (word.isEmpty) continue;
+        result.add(
+          word[0].toUpperCase() + word.substring(1).toLowerCase(),
+        );
+      }
+
+      return result.join(' ');
     }
     Future<void> _pickFile() async {
       final result = await FilePicker.platform.pickFiles(
@@ -668,7 +685,7 @@
                     ),
                     SizedBox(height: 10),
                     Text(
-                      "Uploading Quiz...",
+                      "Uploading Notes...",
                       style: TextStyle(fontSize:15,color: Colors.white),
                     ),
                   ],
