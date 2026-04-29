@@ -3,11 +3,17 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart';
 
 class NoteUploadService {
   static const String baseUrl = "http://192.168.100.13:3000";
   // static const String baseUrl = "http://10.99.151.209:3000";
 
+  static Future<String> generateFileHash(File file) async {
+    final bytes = await file.readAsBytes();
+    final hash = sha256.convert(bytes);
+    return hash.toString();
+  }
   /// 🔹 Fetch teacher name from Firestore
   static Future<String> _getTeacherName(String teacherId) async {
     final snap = await FirebaseFirestore.instance

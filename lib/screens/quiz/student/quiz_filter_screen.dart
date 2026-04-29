@@ -35,10 +35,24 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
         .collection('universities')
         .where('name', isEqualTo: normalize(university!))
         .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) => doc['location'].toString())
-        .toSet()
-        .toList());
+        .map((snapshot) {
+      final allLocations = <String>{};
+
+      for (var doc in snapshot.docs) {
+        final locData = doc['location'];
+
+        if (locData is List) {
+          allLocations.addAll(
+            locData.map((e) => e.toString().trim()),
+          );
+        } else if (locData is String && locData.isNotEmpty) {
+          // backward compatibility
+          allLocations.add(locData.trim());
+        }
+      }
+
+      return allLocations.toList();
+    });
   }
 
   /// 🔹 DEPARTMENT (DEPENDENT ON UNIVERSITY + CAMPUS)

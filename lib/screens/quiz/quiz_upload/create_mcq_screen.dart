@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fyp_ui_design/firebase/services/quiz_service.dart';
-
+import 'package:fyp_ui_design/widgets/academic_info_form.dart';
 
 class CreateMCQScreen extends StatefulWidget {
   static _CreateMCQScreenState? _instance;
@@ -17,13 +17,9 @@ class CreateMCQScreen extends StatefulWidget {
 
 
 class _CreateMCQScreenState extends State<CreateMCQScreen> {
-  String? selectedUniversity;
-  String? selectedDepartment;
-  String? selectedSemester;
-  String? selectedSubject;
+  AcademicSelection academic = AcademicSelection();
   String? correctAnswerIndex;
   bool isLoading = false;
-  final locationCtrl = TextEditingController();
   final questionCtrl = TextEditingController();
   final option1Ctrl = TextEditingController();
   final option2Ctrl = TextEditingController();
@@ -34,202 +30,10 @@ class _CreateMCQScreenState extends State<CreateMCQScreen> {
 
   final List<Map<String, dynamic>> allQuestions = [];
 
-  final List<String> semesters = List.generate(8, (i) => 'Semester ${i + 1}');
-
   @override
   void initState() {
     super.initState();
     CreateMCQScreen._instance = this;
-  }
-
-  // Add new item dialog
-  void _addNew(BuildContext context, String type) {
-    final controller = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text('Add New $type'),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(hintText: 'Enter $type name'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final text = controller.text.trim();
-              if (text.isEmpty) return;
-
-              final db = FirebaseFirestore.instance;
-              final normalized = normalize(text);
-
-              // ================= UNIVERSITY =================
-              if (type == 'University') {
-                final docId = normalized.toLowerCase();
-
-                await db.collection('universities').doc(docId).set({
-                  'name': normalized,
-                  'location': "",
-                  'createdAt': FieldValue.serverTimestamp(),
-                }, SetOptions(merge: true));
-
-                setState(() {
-                  selectedUniversity = normalized;
-                  locationCtrl.clear();
-                  selectedDepartment = null;
-                  selectedSubject = null;
-                });
-              }
-
-              // ================= LOCATION =================
-              if (type == 'Location') {
-                if (selectedUniversity == null) return;
-
-                final loc = normalized;
-                final docId = selectedUniversity!.toLowerCase();
-
-                await db.collection('universities').doc(docId).set({
-                  'location': FieldValue.arrayUnion([loc]),
-                }, SetOptions(merge: true));
-
-                setState(() {
-                  locationCtrl.text = loc;
-                  selectedDepartment = null;
-                  selectedSubject = null;
-                });
-              }
-
-              // ================= DEPARTMENT =================
-              if (type == 'Department') {
-                if (selectedUniversity == null ||
-                    locationCtrl.text.trim().isEmpty) return;
-
-                final dept = normalized;
-
-                final docId =
-                '${selectedUniversity}_${locationCtrl.text.trim()}_${dept}'
-                    .toLowerCase();
-
-                await db.collection('departments').doc(docId).set({
-                  'name': dept,
-                  'university': selectedUniversity,
-                  'location': locationCtrl.text.trim(),
-                  'createdAt': FieldValue.serverTimestamp(),
-                }, SetOptions(merge: true));
-
-                setState(() {
-                  selectedDepartment = dept;
-                  selectedSubject = null;
-                });
-              }
-
-              // ================= SUBJECT =================
-              if (type == 'Subject') {
-                if (selectedDepartment == null) return;
-
-                final subject = normalized;
-                final docId =
-                '${selectedDepartment}_${subject}'.toLowerCase();
-
-                await db.collection('courses').doc(docId).set({
-                  'name': subject,
-                  'department': selectedDepartment,
-                  'createdAt': FieldValue.serverTimestamp(),
-                }, SetOptions(merge: true));
-
-                setState(() {
-                  selectedSubject = subject;
-                });
-              }
-
-              Navigator.pop(context);
-            },
-            child: const Text('Add'),
-          ),
-        ],
-      ),
-    );
-  }
-  String normalize(String input) {
-    input = input.trim();
-    if (input.isEmpty) return "";
-
-    List<String> words = input.split(' ');
-    List<String> result = [];
-
-    for (var word in words) {
-      if (word.isEmpty) continue;
-      result.add(
-        word[0].toUpperCase() + word.substring(1).toLowerCase(),
-      );
-    }
-
-    return result.join(' ');
-  }
-  // ---------------- STREAMS ----------------
-
-  Stream<List<String>> universitiesStream() {
-    return FirebaseFirestore.instance
-        .collection('universities')
-        .snapshots()
-        .map((s) =>
-        s.docs.map((d) => d['name'].toString()).toSet().toList());
-  }
-  Stream<List<String>> locationsStream() {
-    if (selectedUniversity == null) {
-      return const Stream.empty();
-    }
-
-    return FirebaseFirestore.instance
-        .collection('universities')
-        .where('name', isEqualTo: selectedUniversity)
-        .snapshots()
-        .map((snapshot) {
-      final allLocations = <String>{}; // removes duplicates
-
-      for (var doc in snapshot.docs) {
-        final locData = doc['location'];
-
-        if (locData is List) {
-          allLocations.addAll(
-            locData.map((e) => e.toString().trim()),
-          );
-        } else if (locData is String && locData.isNotEmpty) {
-          // handle old data
-          allLocations.add(locData.trim());
-        }
-      }
-
-      return allLocations.toList();
-    });
-  }
-
-  Stream<List<String>> departmentsStream() {
-    if (selectedUniversity == null || locationCtrl.text.isEmpty) {
-      return const Stream.empty();
-    }
-    return FirebaseFirestore.instance
-        .collection('departments')
-        .where('university', isEqualTo: selectedUniversity)
-        // .where('location', isEqualTo: normalize(locationCtrl.text))
-        .where('location', isEqualTo: locationCtrl.text.trim())
-        .snapshots()
-        .map((s) =>
-        s.docs.map((d) => d['name'].toString()).toList());
-  }
-
-  Stream<List<String>> subjectsStream() {
-    if (selectedDepartment == null) return const Stream.empty();
-    return FirebaseFirestore.instance
-        .collection('courses')
-        .where('department', isEqualTo: selectedDepartment)
-        .snapshots()
-        .map((s) =>
-        s.docs.map((d) => d['name'].toString()).toSet().toList());
   }
 
   // ---------------- LOGIC ----------------
@@ -270,11 +74,11 @@ class _CreateMCQScreenState extends State<CreateMCQScreen> {
 
   Future<void> _submitQuiz() async {
     if (allQuestions.isEmpty ||
-        selectedUniversity == null ||
-        selectedDepartment == null ||
-        selectedSemester == null ||
-        selectedSubject == null ||
-        locationCtrl.text.isEmpty) {
+        academic.university == null ||
+        academic.department == null ||
+        academic.semester == null ||
+        academic.subject == null ||
+        academic.location == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Complete all fields')),
       );
@@ -284,10 +88,11 @@ class _CreateMCQScreenState extends State<CreateMCQScreen> {
     setState(() => isLoading = true);
 
     final success = await QuizService.createQuiz(
-      university: selectedUniversity!,
-      location: normalize(locationCtrl.text),
-      department: normalize(selectedDepartment!),
-      semester: int.parse(selectedSemester!.split(' ').last),      subject: selectedSubject!,
+      university: academic.university!,
+      location: academic.location!,
+      department: academic.department!,
+      semester: int.parse(academic.semester!.split(' ').last),
+      subject: academic.subject!,
       questions: allQuestions,
     );
 
@@ -337,155 +142,14 @@ class _CreateMCQScreenState extends State<CreateMCQScreen> {
                       ),
                       const Divider(),
 
-                      StreamBuilder<List<String>>(
-                        stream: universitiesStream(),
-                        builder: (context, snap) {
-                          if (!snap.hasData) return const SizedBox();
-                          return Row(
-                            children: [
-                              Expanded(
-                                child: DropdownButtonFormField<String>(
-                                  value: selectedUniversity,
-                                  decoration: const InputDecoration(labelText: 'University'),
-                                  items: snap.data!
-                                      .map((u) => DropdownMenuItem(value: u, child: Text(u)))
-                                      .toList(),
-                                  onChanged: (v) {
-                                    setState(() {
-                                      selectedUniversity = v;
-                                      locationCtrl.clear();
-                                      selectedDepartment = null;
-                                      selectedSubject = null;
-                                    });
-                                  },
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.add_circle),
-                                onPressed: () => _addNew(context, 'University'),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      StreamBuilder<List<String>>(
-                        stream: locationsStream(),
-                        builder: (context, snapshot) {
-                          if (!snapshot.hasData) return const SizedBox();
-
-                          return Row(
-                            children: [
-                              Expanded(
-                                child: DropdownButtonFormField<String>(
-                                  value: snapshot.data!.contains(locationCtrl.text)
-                                      ? locationCtrl.text
-                                      : null,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Campus / Location',
-                                  ),
-                                  items: snapshot.data!
-                                      .map((loc) => DropdownMenuItem(
-                                    value: loc,
-                                    child: Text(loc),
-                                  ))
-                                      .toList(),
-                                  onChanged: (v) {
-                                    setState(() {
-                                      locationCtrl.text = v!;
-                                      selectedDepartment = null;
-                                      selectedSubject = null;
-                                    });
-                                  },
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.add_circle),
-                                onPressed: () => _addNew(context, 'Location'),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 12),
-
-                      StreamBuilder<List<String>>(
-                        stream: departmentsStream(),
-                        builder: (context, snap) {
-                          if (!snap.hasData) return const SizedBox();
-                          return Row(
-                            children: [
-                              Expanded(
-                                child: DropdownButtonFormField<String>(
-                                  value: selectedDepartment,
-                                  decoration: const InputDecoration(labelText: 'Department'),
-                                  items: snap.data!
-                                      .map((d) => DropdownMenuItem(
-                                    value: d,
-                                    child: Text(d),
-                                  ))
-                                      .toList(),
-                                  onChanged: (v) => setState(() => selectedDepartment = v),
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.add_circle),
-                                onPressed: () => _addNew(context, 'Department'),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-
-                      const SizedBox(height: 12),
-                      DropdownButtonFormField<String>(
-                        value: selectedSemester,
-                        decoration:
-                        const InputDecoration(labelText: 'Semester'),
-                        items: semesters
-                            .map((s) => DropdownMenuItem(
-                          value: s,
-                          child: Text(s),
-                        ))
-                            .toList(),
-                        onChanged: (v) {
+                      AcademicInfoForm(
+                        value: academic,
+                        onChanged: (val) {
                           setState(() {
-                            selectedSemester = v;
+                            academic = val;
                           });
                         },
                       ),
-
-                      const SizedBox(height: 12),
-                      StreamBuilder<List<String>>(
-                        stream: subjectsStream(),
-                        builder: (context, snap) {
-                          if (!snap.hasData) return const SizedBox();
-
-                          return Row(
-                            children: [
-                              Expanded(
-                                child: DropdownButtonFormField<String>(
-                                  value: selectedSubject,
-                                  decoration: const InputDecoration(labelText: 'Subject'),
-                                  items: snap.data!
-                                      .map((s) => DropdownMenuItem(
-                                    value: s,
-                                    child: Text(s),
-                                  ))
-                                      .toList(),
-                                  onChanged: (v) => setState(() => selectedSubject = v),
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.add_circle),
-                                onPressed: () => _addNew(context, 'Subject'),
-                              ),
-                            ],
-                          );
-                        },
-                      )
                     ],
                   ),
                 ),
@@ -621,106 +285,4 @@ class _CreateMCQScreenState extends State<CreateMCQScreen> {
           ),
     ]
     );
-  }
-
-  // ---------------- SMALL UI HELPERS ----------------
-
-  Widget _sectionCard({required String title, required Widget child}) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title,
-                style:
-                const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const Divider(),
-            child,
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _text(TextEditingController c, String label) {
-    return TextField(
-      controller: c,
-      decoration: InputDecoration(labelText: label),
-    );
-  }
-
-  Widget _option(TextEditingController c, String label, String value) {
-    return TextField(
-      controller: c,
-      decoration: InputDecoration(
-        labelText: 'Option $label',
-        prefixIcon: Radio<String>(
-          value: value,
-          groupValue: correctAnswerIndex,
-          onChanged: (v) => setState(() => correctAnswerIndex = v),
-        ),
-      ),
-    );
-  }
-
-  Widget _gap() => const SizedBox(height: 12);
-
-  Widget _universityDropdown() => StreamBuilder<List<String>>(
-    stream: universitiesStream(),
-    builder: (_, snap) {
-      if (!snap.hasData) return const SizedBox();
-      return DropdownButtonFormField(
-        value: selectedUniversity,
-        decoration: const InputDecoration(labelText: 'University'),
-        items: snap.data!
-            .map((u) => DropdownMenuItem(value: u, child: Text(u)))
-            .toList(),
-        onChanged: (v) => setState(() => selectedUniversity = v),
-      );
-    },
-  );
-
-  Widget _departmentDropdown() => StreamBuilder<List<String>>(
-    stream: departmentsStream(),
-    builder: (_, snap) {
-      if (!snap.hasData) return const SizedBox();
-      return DropdownButtonFormField(
-        value: selectedDepartment,
-        decoration: const InputDecoration(labelText: 'Department'),
-        items: snap.data!
-            .map((d) => DropdownMenuItem(value: d, child: Text(d)))
-            .toList(),
-        onChanged: (v) => setState(() => selectedDepartment = v),
-      );
-    },
-  );
-
-  Widget _subjectDropdown() => StreamBuilder<List<String>>(
-    stream: subjectsStream(),
-    builder: (_, snap) {
-      if (!snap.hasData) return const SizedBox();
-      return DropdownButtonFormField(
-        value: selectedSubject,
-        decoration: const InputDecoration(labelText: 'Subject'),
-        items: snap.data!
-            .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-            .toList(),
-        onChanged: (v) => setState(() => selectedSubject = v),
-      );
-    },
-  );
-
-  Widget _semesterDropdown() => DropdownButtonFormField(
-    value: semesters.contains(selectedSemester)
-        ? selectedSemester
-        : null,
-    decoration: const InputDecoration(labelText: 'Semester'),
-    items: semesters
-        .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-        .toList(),
-    onChanged: (v) => setState(() => selectedSemester = v),
-  );
-}
+  }}
