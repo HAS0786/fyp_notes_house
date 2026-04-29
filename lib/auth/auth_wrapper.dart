@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:fyp_ui_design/screens/admin/admin_approve_teachers.dart';
+import 'package:fyp_ui_design/screens/admin/admin_dashboard_screen.dart';
 
 import '../screens/dashboard/home_screen.dart';
 import '../screens/dashboard/pendingapproval/pendingapprovalscreen.dart';
@@ -92,7 +92,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
             // 🧑‍💼 Admin dashboard
             if (role == 'admin') {
-              return const AdminApproveTeachersScreen();
+              return const AdminDashboard();
             }
 
             // 🎓 Student / Teacher

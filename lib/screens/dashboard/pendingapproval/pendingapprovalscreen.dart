@@ -26,9 +26,10 @@ class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
         .doc(user.uid)
         .snapshots()
         .listen((doc) async {
-      final role = doc.data()?['role'];
 
-      if (role == 'teacher') {
+      final status = doc.data()?['status'];
+
+      if (status == 'approved') {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_role', 'teacher');
 
@@ -63,6 +64,8 @@ class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Teacher Approval'),
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.lightBlue,
       ),
       body: Padding(
         padding: const EdgeInsets.all(24),

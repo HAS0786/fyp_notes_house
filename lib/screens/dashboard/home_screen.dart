@@ -8,6 +8,7 @@ import 'package:fyp_ui_design/firebase/services/local_notification_service.dart'
 import 'package:fyp_ui_design/firebase/services/notification_service.dart';
 import 'package:fyp_ui_design/screens/dashboard/searchbar.dart';
 import 'package:fyp_ui_design/screens/notes/allnotes/select_university_screen.dart';
+import 'package:fyp_ui_design/screens/notes/allnotes/teacherdraft/teacher_draft_screen.dart';
 import 'package:fyp_ui_design/screens/quiz/quiz_history/quiz_history_screen.dart';
 import 'package:fyp_ui_design/screens/quiz/result_performance/quiz_performance_analysis_screen.dart';
 import 'package:fyp_ui_design/screens/notes/uploadnotes/upload_notes_screen.dart';
@@ -61,7 +62,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final prefs = await SharedPreferences.getInstance();
       final oldRole = prefs.getString('user_role');
 
-      if (role == 'teacher' && oldRole != 'teacher') {
+      final status = doc.data()?['status'];
+
+      if (status == 'approved' && oldRole != 'teacher'){
         await prefs.setString('user_role', 'teacher');
 
         if (!mounted) return;
@@ -76,12 +79,19 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             actions: [
               TextButton(
-                onPressed: () {
+                onPressed: () async {
                   Navigator.pop(context);
-                  setState(() {
-                    userRole = 'teacher';
-                    _index = 0; // optional but recommended
-                  });
+
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setString('user_role', 'teacher');
+
+                  if (!mounted) return;
+
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HomeScreen()),
+                        (route) => false,
+                  );
                 },
                 child: const Text('Continue'),
               ),
@@ -108,13 +118,20 @@ class _HomeScreenState extends State<HomeScreen> {
         .doc(user.uid)
         .get();
 
-    final roleFromDb = doc.data()?['role'] ?? 'student';
+    final role = doc.data()?['role'] ?? 'student';
+    final status = doc.data()?['status'] ?? 'approved';
+
+    String finalRole = role;
+
+    if (role == 'teacher' && status != 'approved') {
+      finalRole = 'student'; // 👈 FORCE student mode
+    }
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user_role', roleFromDb);
+    await prefs.setString('user_role', finalRole);
 
     setState(() {
-      userRole = roleFromDb;
+      userRole = finalRole;
       _isLoading = false;
     });
   }
@@ -128,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late final List<Widget> teacherPages = [
     HomeTab(isTeacher: true,welcomeText: welcomeText(),),
-    // QuizListScreen(),
+    TeacherDraftScreen(),
     OfflineNotesScreen(),
     const SelectUniversityScreen(),
     const ProfileScreen(),
@@ -164,6 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
             items: (userRole == 'teacher' || userRole == 'admin')
                 ? const [
               BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+              BottomNavigationBarItem(icon: Icon(Icons.description), label: 'Drafts'),
               BottomNavigationBarItem(icon: Icon(Icons.download), label: 'Downloads'),
               BottomNavigationBarItem(icon: Icon(Icons.sticky_note_2), label: 'Notes'),
               BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),

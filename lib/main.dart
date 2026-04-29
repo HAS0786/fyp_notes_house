@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:fyp_ui_design/firebase/services/local_notification_service.dart';
 import 'package:fyp_ui_design/firebase_options.dart';
-import 'package:fyp_ui_design/screens/admin/admin_approve_teachers.dart';
+import 'package:fyp_ui_design/screens/admin/admin_dashboard_screen.dart';
 import 'package:fyp_ui_design/screens/admin/admin_login_screen.dart';
 import 'package:fyp_ui_design/screens/splashscreen/splash_screen.dart';
 import 'package:fyp_ui_design/screens/dashboard/home_screen.dart';
@@ -55,7 +55,7 @@ class MyApp extends StatelessWidget {
 
       routes: {
         '/admin-login': (_) => const AdminLoginScreen(),
-        '/admin-approve': (_) => const AdminApproveTeachersScreen(),
+        '/admin-approve': (_) => const AdminDashboard(),
         '/choose-role': (_) => const ChooseRoleScreen(),
         '/dashboard': (_) => const HomeScreen(),
         '/create-mcq': (_) => const CreateMCQScreen(),

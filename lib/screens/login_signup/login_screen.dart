@@ -23,11 +23,12 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   /// Firebase login
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-
+    setState(() => _isLoading = true);
     try {
       final credential =
       await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -48,15 +49,14 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (_) => const AuthWrapper()),
             (route) => false,
       );
+      setState(() => _isLoading = false);
 
 
-    } on FirebaseAuthException catch (e) {
+    }on FirebaseAuthException catch (e) {
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.message ?? 'Login failed')));
-    }
-  }
-
-
+    }}
 
   /// Email validation
   String? _validateEmail(String? value) {
@@ -157,8 +157,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child:
-                  const Text('Log In', style: TextStyle(fontSize: 16)),
+                  child: _isLoading
+                      ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                      : const Text('Log In'),
                 ),
                 const SizedBox(height: 16),
 
@@ -175,7 +183,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       if (user == null) return;
 
-                      Navigator.pushReplacementNamed(context, '/dashboard');
+                      // ⭐ IMPORTANT FIX
+                      await AuthRoleService.syncUserToLocal(user: user);
+
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AuthWrapper()),
+                      );
 
                     },
                     icon: Image.asset('assets/images/google.png', height: 20),
