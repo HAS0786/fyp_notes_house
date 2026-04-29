@@ -42,25 +42,133 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
   final String baseUrl = "http://192.168.100.13:3000";
   // final String baseUrl = "http://10.99.151.209:3000";
 
-  // String normalize(String input) {
-  //   input = input.trim();
-  //   if (input.isEmpty) return "";
-  //
-  //   List<String> words = input.split(' ');
-  //   List<String> result = [];
-  //
-  //   for (var word in words) {
-  //     if (word.isEmpty) continue;
-  //     result.add(
-  //       word[0].toUpperCase() + word.substring(1).toLowerCase(),
-  //     );
-  //   }
-  //
-  //   return result.join(' ');
-  // }
+  // Add new item dialog
+  void _addNew(BuildContext context, String type) {
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Add New $type'),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(hintText: 'Enter $type name'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final text = controller.text.trim();
+              if (text.isEmpty) return;
+
+              final db = FirebaseFirestore.instance;
+              final normalized = normalize(text);
+
+              // ================= UNIVERSITY =================
+              if (type == 'University') {
+                final docId = normalized.toLowerCase();
+
+                await db.collection('universities').doc(docId).set({
+                  'name': normalized,
+                  'location': "",
+                  'createdAt': FieldValue.serverTimestamp(),
+                }, SetOptions(merge: true));
+
+                setState(() {
+                  selectedUniversity = normalized;
+                  locationCtrl.clear();
+                  selectedDepartment = null;
+                  selectedSubject = null;
+                });
+              }
+
+              // ================= LOCATION =================
+              if (type == 'Location') {
+                if (selectedUniversity == null) return;
+
+                final loc = normalized;
+                final docId = selectedUniversity!.toLowerCase();
+
+                await db.collection('universities').doc(docId).set({
+                  'location': FieldValue.arrayUnion([loc]),
+                }, SetOptions(merge: true));
+
+                setState(() {
+                  locationCtrl.text = loc;
+                  selectedDepartment = null;
+                  selectedSubject = null;
+                });
+              }
+
+              // ================= DEPARTMENT =================
+              if (type == 'Department') {
+                if (selectedUniversity == null ||
+                    locationCtrl.text.trim().isEmpty) return;
+
+                final dept = normalized;
+
+                final docId =
+                '${selectedUniversity}_${locationCtrl.text.trim()}_${dept}'
+                    .toLowerCase();
+
+                await db.collection('departments').doc(docId).set({
+                  'name': dept,
+                  'university': selectedUniversity,
+                  'location': locationCtrl.text.trim(),
+                  'createdAt': FieldValue.serverTimestamp(),
+                }, SetOptions(merge: true));
+
+                setState(() {
+                  selectedDepartment = dept;
+                  selectedSubject = null;
+                });
+              }
+
+              // ================= SUBJECT =================
+              if (type == 'Subject') {
+                if (selectedDepartment == null) return;
+
+                final subject = normalized;
+                final docId =
+                '${selectedDepartment}_${subject}'.toLowerCase();
+
+                await db.collection('courses').doc(docId).set({
+                  'name': subject,
+                  'department': selectedDepartment,
+                  'createdAt': FieldValue.serverTimestamp(),
+                }, SetOptions(merge: true));
+
+                setState(() {
+                  selectedSubject = subject;
+                });
+              }
+
+              Navigator.pop(context);
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+  }
   String normalize(String input) {
-    input = input.trim().toLowerCase();
-    return input[0].toUpperCase() + input.substring(1);
+    input = input.trim();
+    if (input.isEmpty) return "";
+
+    List<String> words = input.split(' ');
+    List<String> result = [];
+
+    for (var word in words) {
+      if (word.isEmpty) continue;
+      result.add(
+        word[0].toUpperCase() + word.substring(1).toLowerCase(),
+      );
+    }
+
+    return result.join(' ');
   }
   // 📁 PICK FILE
   Future<void> _pickFile() async {
@@ -92,11 +200,22 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
         .where('name', isEqualTo: selectedUniversity)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => doc['location']?.toString() ?? "")
-          .where((e) => e.isNotEmpty)
-          .toSet()
-          .toList();
+      final allLocations = <String>{}; // removes duplicates
+
+      for (var doc in snapshot.docs) {
+        final locData = doc['location'];
+
+        if (locData is List) {
+          allLocations.addAll(
+            locData.map((e) => e.toString().trim()),
+          );
+        } else if (locData is String && locData.isNotEmpty) {
+          // handle old data
+          allLocations.add(locData.trim());
+        }
+      }
+
+      return allLocations.toList();
     });
   }
 
@@ -108,7 +227,8 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
     return FirebaseFirestore.instance
         .collection('departments')
         .where('university', isEqualTo: selectedUniversity)
-        .where('location', isEqualTo: normalize(locationCtrl.text))
+        // .where('location', isEqualTo: normalize(locationCtrl.text))
+        .where('location', isEqualTo: locationCtrl.text.trim())
         .snapshots()
         .map((s) =>
         s.docs.map((d) => d['name'].toString()).toList());
@@ -339,24 +459,30 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                             stream: universitiesStream(),
                             builder: (context, snap) {
                               if (!snap.hasData) return const SizedBox();
-                              return DropdownButtonFormField<String>(
-                                value: selectedUniversity,
-                                decoration:
-                                const InputDecoration(labelText: 'University'),
-                                items: snap.data!
-                                    .map((u) => DropdownMenuItem(
-                                  value: u,
-                                  child: Text(u),
-                                ))
-                                    .toList(),
-                                onChanged: (v) {
-                                  setState(() {
-                                    selectedUniversity = v;
-                                    locationCtrl.clear();
-                                    selectedDepartment = null;
-                                    selectedSubject = null;
-                                  });
-                                },
+                              return Row(
+                                children: [
+                                  Expanded(
+                                    child: DropdownButtonFormField<String>(
+                                      value: selectedUniversity,
+                                      decoration: const InputDecoration(labelText: 'University'),
+                                      items: snap.data!
+                                          .map((u) => DropdownMenuItem(value: u, child: Text(u)))
+                                          .toList(),
+                                      onChanged: (v) {
+                                        setState(() {
+                                          selectedUniversity = v;
+                                          locationCtrl.clear();
+                                          selectedDepartment = null;
+                                          selectedSubject = null;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.add_circle),
+                                    onPressed: () => _addNew(context, 'University'),
+                                  ),
+                                ],
                               );
                             },
                           ),
@@ -366,28 +492,36 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                           StreamBuilder<List<String>>(
                             stream: locationsStream(),
                             builder: (context, snapshot) {
-                              if (!snapshot.hasData) {
-                                return const SizedBox();
-                              }
+                              if (!snapshot.hasData) return const SizedBox();
 
-                              return DropdownButtonFormField<String>(
-                                value: locationCtrl.text.isEmpty ? null : locationCtrl.text,
-                                decoration: const InputDecoration(
-                                  labelText: 'Campus / Location',
-                                ),
-                                items: snapshot.data!
-                                    .map((loc) => DropdownMenuItem(
-                                  value: loc,
-                                  child: Text(loc),
-                                ))
-                                    .toList(),
-                                onChanged: (v) {
-                                  setState(() {
-                                    locationCtrl.text = v!;
-                                    selectedDepartment = null;
-                                    selectedSubject = null;
-                                  });
-                                },
+                              return Row(
+                                children: [
+                                  Expanded(
+                                    child: DropdownButtonFormField<String>(
+                                      value: locationCtrl.text.isEmpty ? null : locationCtrl.text,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Campus / Location',
+                                      ),
+                                      items: snapshot.data!
+                                          .map((loc) => DropdownMenuItem(
+                                        value: loc,
+                                        child: Text(loc),
+                                      ))
+                                          .toList(),
+                                      onChanged: (v) {
+                                        setState(() {
+                                          locationCtrl.text = v!;
+                                          selectedDepartment = null;
+                                          selectedSubject = null;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.add_circle),
+                                    onPressed: () => _addNew(context, 'Location'),
+                                  ),
+                                ],
                               );
                             },
                           ),
@@ -398,18 +532,26 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                             stream: departmentsStream(),
                             builder: (context, snap) {
                               if (!snap.hasData) return const SizedBox();
-                              return DropdownButtonFormField<String>(
-                                value: selectedDepartment,
-                                decoration:
-                                const InputDecoration(labelText: 'Department'),
-                                items: snap.data!
-                                    .map((d) => DropdownMenuItem(
-                                  value: d,
-                                  child: Text(d),
-                                ))
-                                    .toList(),
-                                onChanged: (v) =>
-                                    setState(() => selectedDepartment = v),
+                              return Row(
+                                children: [
+                                  Expanded(
+                                    child: DropdownButtonFormField<String>(
+                                      value: selectedDepartment,
+                                      decoration: const InputDecoration(labelText: 'Department'),
+                                      items: snap.data!
+                                          .map((d) => DropdownMenuItem(
+                                        value: d,
+                                        child: Text(d),
+                                      ))
+                                          .toList(),
+                                      onChanged: (v) => setState(() => selectedDepartment = v),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.add_circle),
+                                    onPressed: () => _addNew(context, 'Department'),
+                                  ),
+                                ],
                               );
                             },
                           ),
@@ -435,21 +577,30 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                             stream: subjectsStream(),
                             builder: (context, snap) {
                               if (!snap.hasData) return const SizedBox();
-                              return DropdownButtonFormField<String>(
-                                value: selectedSubject,
-                                decoration:
-                                const InputDecoration(labelText: 'Subject'),
-                                items: snap.data!
-                                    .map((s) => DropdownMenuItem(
-                                  value: s,
-                                  child: Text(s),
-                                ))
-                                    .toList(),
-                                onChanged: (v) =>
-                                    setState(() => selectedSubject = v),
+
+                              return Row(
+                                children: [
+                                  Expanded(
+                                    child: DropdownButtonFormField<String>(
+                                      value: selectedSubject,
+                                      decoration: const InputDecoration(labelText: 'Subject'),
+                                      items: snap.data!
+                                          .map((s) => DropdownMenuItem(
+                                        value: s,
+                                        child: Text(s),
+                                      ))
+                                          .toList(),
+                                      onChanged: (v) => setState(() => selectedSubject = v),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.add_circle),
+                                    onPressed: () => _addNew(context, 'Subject'),
+                                  ),
+                                ],
                               );
                             },
-                          ),
+                          )
                         ],
                       ),
                     ),

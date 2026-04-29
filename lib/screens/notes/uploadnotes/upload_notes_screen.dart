@@ -90,11 +90,11 @@
                 final db = FirebaseFirestore.instance;
 
                 if (type == 'University') {
-                  final docId = text.toLowerCase(); // ❗ REMOVE location dependency
+                  final docId = text.toLowerCase(); // REMOVE location dependency
 
                   await db.collection('universities').doc(docId).set({
                     'name': normalize(text),
-                    'location': "", // empty initially
+                    'location': [],
                     'createdAt': FieldValue.serverTimestamp(),
                   }, SetOptions(merge: true));
 
@@ -107,9 +107,9 @@
 
                   final docId = selectedUniversity!.toLowerCase();
 
-                  await db.collection('universities').doc(docId).update({
-                    'location': loc,
-                  });
+                  await db.collection('universities').doc(docId).set({
+                    'location': FieldValue.arrayUnion([loc]),
+                  }, SetOptions(merge: true));
 
                   setState(() {
                     locationCtrl.text = loc;
@@ -122,7 +122,7 @@
                           .toLowerCase();
   
                   await db.collection('departments').doc(docId).set({
-                    'name': text,
+                    'name': normalize(text),
                     'university': selectedUniversity,
                     'location': locationCtrl.text.trim(),
                     'createdAt': FieldValue.serverTimestamp(),
@@ -137,7 +137,7 @@
                   final docId = '${selectedDepartment}_${text}'.toLowerCase();
   
                   await db.collection('courses').doc(docId).set({
-                    'name': text,
+                    'name': normalize(text),
                     'department': selectedDepartment,
                     'createdAt': FieldValue.serverTimestamp(),
                   }, SetOptions(merge: true));
@@ -282,23 +282,24 @@
             (snapshot) => snapshot.docs.map((d) => d['name'].toString()).toList(),
           );
     }
-  
+
     Future<void> _ensureUniversityHasLocation() async {
       final db = FirebaseFirestore.instance;
-  
+
       final snap = await db
           .collection('universities')
           .where('name', isEqualTo: selectedUniversity)
           .get();
-  
+
       if (snap.docs.isEmpty) return;
-  
+
       final doc = snap.docs.first;
-      final data = doc.data();
-  
-      if ((data['location'] ?? '').toString().trim().isEmpty) {
-        await doc.reference.update({'location': locationCtrl.text.trim()});
-      }
+
+      final loc = normalize(locationCtrl.text);
+
+      await doc.reference.set({
+        'location': FieldValue.arrayUnion([loc]),
+      }, SetOptions(merge: true));
     }
   
     Stream<List<String>> coursesStream() {
@@ -323,19 +324,28 @@
       if (selectedUniversity == null) {
         return const Stream.empty();
       }
-  
+
       return FirebaseFirestore.instance
           .collection('universities')
           .where('name', isEqualTo: selectedUniversity)
           .snapshots()
           .map((snapshot) {
-        final values = snapshot.docs
-            .map((doc) => doc['location']?.toString() ?? "")
-            .where((e) => e.isNotEmpty)
-            .toSet()
-            .toList();
-  
-        return values;
+        final allLocations = <String>{}; // removes duplicates
+
+        for (var doc in snapshot.docs) {
+          final locData = doc['location'];
+
+          if (locData is List) {
+            allLocations.addAll(
+              locData.map((e) => e.toString().trim()),
+            );
+          } else if (locData is String && locData.isNotEmpty) {
+            // handle old data
+            allLocations.add(locData.trim());
+          }
+        }
+
+        return allLocations.toList();
       });
     }
   
@@ -434,7 +444,9 @@
                             children: [
                               Expanded(
                                 child: DropdownButtonFormField<String>(
-                                  value: locationCtrl.text.isEmpty ? null : locationCtrl.text,
+                                  value: snapshot.data!.contains(locationCtrl.text)
+                                      ? locationCtrl.text
+                                      : null,
                                   decoration: const InputDecoration(
                                     labelText: 'Campus / Location',
                                   ),
