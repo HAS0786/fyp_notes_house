@@ -18,6 +18,19 @@ class QuizListScreen extends StatelessWidget {
     required this.subject,
   });
 
+  String normalize(String text) {
+    return text
+        .trim()
+        .toLowerCase()
+        .split(" ")
+        .map((word) {
+          return word.isEmpty
+              ? word
+              : word[0].toUpperCase() + word.substring(1);
+        })
+        .join(" ");
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,13 +64,14 @@ class QuizListScreen extends StatelessWidget {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('quizzes')
-                  .where('university', isEqualTo: university)
-                  .where('department', isEqualTo: department)
+                  .where('university', isEqualTo: normalize(university))
+                  .where('department', isEqualTo: normalize(department))
+                  .where('subject', isEqualTo: normalize(subject))
+                  .where('location', isEqualTo: normalize(campus))
                   .where('semester', isEqualTo: semester)
-                  .where('subject', isEqualTo: subject)
-                  .where('location', isEqualTo: campus)
                   .where('isPublic', isEqualTo: true)
                   .snapshots(),
+
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -107,10 +121,7 @@ class QuizListScreen extends StatelessWidget {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 6,
-                            ),
+                            BoxShadow(color: Colors.black12, blurRadius: 6),
                           ],
                         ),
                         child: Row(
@@ -122,7 +133,10 @@ class QuizListScreen extends StatelessWidget {
                                 color: Colors.lightBlue.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Icon(Icons.quiz, color: Colors.lightBlue),
+                              child: const Icon(
+                                Icons.quiz,
+                                color: Colors.lightBlue,
+                              ),
                             ),
 
                             const SizedBox(width: 12),
@@ -142,7 +156,9 @@ class QuizListScreen extends StatelessWidget {
                                   const SizedBox(height: 4),
                                   Text(
                                     '${questions.length} Questions',
-                                    style: TextStyle(color: Colors.grey.shade600),
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                    ),
                                   ),
                                 ],
                               ),

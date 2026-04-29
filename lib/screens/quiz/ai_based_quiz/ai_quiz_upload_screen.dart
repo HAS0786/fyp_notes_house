@@ -42,21 +42,25 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
   final String baseUrl = "http://192.168.100.13:3000";
   // final String baseUrl = "http://10.99.151.209:3000";
 
+  // String normalize(String input) {
+  //   input = input.trim();
+  //   if (input.isEmpty) return "";
+  //
+  //   List<String> words = input.split(' ');
+  //   List<String> result = [];
+  //
+  //   for (var word in words) {
+  //     if (word.isEmpty) continue;
+  //     result.add(
+  //       word[0].toUpperCase() + word.substring(1).toLowerCase(),
+  //     );
+  //   }
+  //
+  //   return result.join(' ');
+  // }
   String normalize(String input) {
-    input = input.trim();
-    if (input.isEmpty) return "";
-
-    List<String> words = input.split(' ');
-    List<String> result = [];
-
-    for (var word in words) {
-      if (word.isEmpty) continue;
-      result.add(
-        word[0].toUpperCase() + word.substring(1).toLowerCase(),
-      );
-    }
-
-    return result.join(' ');
+    input = input.trim().toLowerCase();
+    return input[0].toUpperCase() + input.substring(1);
   }
   // 📁 PICK FILE
   Future<void> _pickFile() async {
@@ -390,22 +394,6 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
 
                           const SizedBox(height: 12),
 
-                          DropdownButtonFormField<String>(
-                            value: selectedSemester,
-                            decoration:
-                            const InputDecoration(labelText: 'Semester'),
-                            items: semesters
-                                .map((s) => DropdownMenuItem(
-                              value: s,
-                              child: Text(s),
-                            ))
-                                .toList(),
-                            onChanged: (v) =>
-                                setState(() => selectedSemester = v),
-                          ),
-
-                          const SizedBox(height: 12),
-
                           StreamBuilder<List<String>>(
                             stream: departmentsStream(),
                             builder: (context, snap) {
@@ -428,6 +416,21 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
 
                           const SizedBox(height: 12),
 
+                          DropdownButtonFormField<String>(
+                            value: selectedSemester,
+                            decoration:
+                            const InputDecoration(labelText: 'Semester'),
+                            items: semesters
+                                .map((s) => DropdownMenuItem(
+                              value: s,
+                              child: Text(s),
+                            ))
+                                .toList(),
+                            onChanged: (v) =>
+                                setState(() => selectedSemester = v),
+                          ),
+
+                          const SizedBox(height: 12),
                           StreamBuilder<List<String>>(
                             stream: subjectsStream(),
                             builder: (context, snap) {

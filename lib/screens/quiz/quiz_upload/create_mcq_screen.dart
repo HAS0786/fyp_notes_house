@@ -256,25 +256,6 @@ class _CreateMCQScreenState extends State<CreateMCQScreen> {
 
                       const SizedBox(height: 12),
 
-                      DropdownButtonFormField<String>(
-                        value: selectedSemester,
-                        decoration:
-                        const InputDecoration(labelText: 'Semester'),
-                        items: semesters
-                            .map((s) => DropdownMenuItem(
-                          value: s,
-                          child: Text(s),
-                        ))
-                            .toList(),
-                        onChanged: (v) {
-                          setState(() {
-                            selectedSemester = v;
-                          });
-                        },
-                      ),
-
-                      const SizedBox(height: 12),
-
                       StreamBuilder<List<String>>(
                         stream: departmentsStream(),
                         builder: (context, snap) {
@@ -296,7 +277,24 @@ class _CreateMCQScreenState extends State<CreateMCQScreen> {
                       ),
 
                       const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        value: selectedSemester,
+                        decoration:
+                        const InputDecoration(labelText: 'Semester'),
+                        items: semesters
+                            .map((s) => DropdownMenuItem(
+                          value: s,
+                          child: Text(s),
+                        ))
+                            .toList(),
+                        onChanged: (v) {
+                          setState(() {
+                            selectedSemester = v;
+                          });
+                        },
+                      ),
 
+                      const SizedBox(height: 12),
                       StreamBuilder<List<String>>(
                         stream: subjectsStream(),
                         builder: (context, snap) {

@@ -60,8 +60,9 @@ class _TeacherScreenSelectionState extends State<TeacherScreenSelection> {
       margin: const EdgeInsets.all(12),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.grey.shade200,
+        color: Colors.grey.shade100,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
       ),
       child: Row(
         children: [
@@ -80,7 +81,7 @@ class _TeacherScreenSelectionState extends State<TeacherScreenSelection> {
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: selectedTab == index
-                ? Colors.lightBlue.shade300
+                ? Colors.blue.withOpacity(0.2)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
@@ -90,7 +91,7 @@ class _TeacherScreenSelectionState extends State<TeacherScreenSelection> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: selectedTab == index
-                    ? Colors.white
+                    ? Colors.blue
                     : Colors.grey,
               ),
             ),

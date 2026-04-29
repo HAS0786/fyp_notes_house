@@ -163,7 +163,24 @@ class QuizResultScreen extends StatelessWidget {
                     final q = entry.value;
 
                     final List options = q['options'];
-                    int correctIndex = int.tryParse(q['correct']?.toString() ?? '') ?? -1;
+                    // int correctIndex = int.tryParse(q['correct']?.toString() ?? '') ?? -1
+                    int correctIndex = -1;
+
+// Case 1: correct exists
+                    if (q['correct'] != null) {
+                      correctIndex = int.tryParse(q['correct'].toString()) ?? -1;
+                    }
+
+// Case 2: AI answer
+                    else if (q['answer'] != null) {
+                      var ans = q['answer'];
+
+                      if (ans is int) {
+                        correctIndex = ans;
+                      } else if (ans is String && ans.isNotEmpty) {
+                        correctIndex = ans.toUpperCase().codeUnitAt(0) - 65;
+                      }
+                    }
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 16),

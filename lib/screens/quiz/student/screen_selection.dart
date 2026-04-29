@@ -72,7 +72,7 @@ class _StudentScreenSelectionState extends State<StudentScreenSelection> {
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: selectedTab == index
-                ? Colors.blue.withOpacity(0.1)
+                ? Colors.blue.withOpacity(0.2)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),

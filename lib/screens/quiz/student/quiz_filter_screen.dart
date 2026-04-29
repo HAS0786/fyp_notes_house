@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_ui_design/screens/quiz/quiz_list_screen.dart';
-
+import 'package:path/path.dart' as p;
 class QuizFilterScreen extends StatefulWidget {
   const QuizFilterScreen({super.key});
 
@@ -33,7 +33,7 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
 
     return FirebaseFirestore.instance
         .collection('universities')
-        .where('name', isEqualTo: university)
+        .where('name', isEqualTo: normalize(university!))
         .snapshots()
         .map((snapshot) => snapshot.docs
         .map((doc) => doc['location'].toString())
@@ -49,8 +49,8 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
 
     return FirebaseFirestore.instance
         .collection('departments')
-        .where('university', isEqualTo: university)
-        .where('location', isEqualTo: campus)
+        .where('university', isEqualTo: normalize(university!))
+        .where('location', isEqualTo:normalize(campus!))
         .snapshots()
         .map((snapshot) => snapshot.docs
         .map((doc) => doc['name'].toString())
@@ -63,16 +63,21 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
     Query query = FirebaseFirestore.instance.collection('quizzes');
 
     if (university != null) {
-      query = query.where('university', isEqualTo: university);
+      query = query.where('university',
+          isEqualTo: normalize(university!));
     }
     if (campus != null) {
-      query = query.where('location', isEqualTo: campus);
+      query = query.where('location',
+          isEqualTo: normalize(campus!));
     }
     if (department != null) {
-      query = query.where('department', isEqualTo: department);
+      query = query.where('department',
+          isEqualTo: normalize(department!));
     }
 
     return query.snapshots().map((snapshot) {
+      print("Docs count: ${snapshot.docs.length}"); // DEBUG
+
       return snapshot.docs
           .map((doc) => doc['semester'])
           .where((e) => e != null)
@@ -82,24 +87,22 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
         ..sort();
     });
   }
-
   /// 🔹 SUBJECT (FROM QUIZZES)
   Stream<List<String>> subjectsStream() {
     Query query = FirebaseFirestore.instance.collection('quizzes');
 
     if (university != null) {
-      query = query.where('university', isEqualTo: university);
+      query = query.where('university', isEqualTo: normalize(university!));
     }
     if (campus != null) {
-      query = query.where('location', isEqualTo: campus);
+      query = query.where('location', isEqualTo: normalize(campus!));
     }
     if (department != null) {
-      query = query.where('department', isEqualTo: department);
+      query = query.where('department', isEqualTo: normalize(department!));
     }
     if (semester != null) {
       query = query.where('semester', isEqualTo: semester);
     }
-
     return query.snapshots().map((snapshot) {
       return snapshot.docs
           .map((doc) => doc['subject'].toString())
@@ -135,6 +138,13 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
     );
   }
 
+  String normalize(String text) {
+    return text.trim().toLowerCase().split(" ").map((word) {
+      return word.isEmpty
+          ? word
+          : word[0].toUpperCase() + word.substring(1);
+    }).join(" ");
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -175,14 +185,14 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
                             return DropdownMenuItem(
                                 value: e, child: Text(e));
                           }).toList(),
-                          onChanged: (v) {
-                            setState(() {
-                              university = v;
-                              campus = null;
-                              department = null;
-                              subject = null;
-                              semester = null;
-                            });
+                            onChanged: (v) {
+                              setState(() {
+                                university = normalize(v!);
+                                campus = null;
+                                department = null;
+                                subject = null;
+                                semester = null;
+                              });
                           },
                         );
                       },
@@ -205,7 +215,7 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
                           }).toList(),
                           onChanged: (v) {
                             setState(() {
-                              campus = v;
+                              campus = normalize(v!);
                               department = null;
                               subject = null;
                               semester = null;
@@ -234,7 +244,7 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
                           }).toList(),
                           onChanged: (v) {
                             setState(() {
-                              department = v;
+                              department = normalize(v!);
                               subject = null;
                               semester = null;
                             });
@@ -288,7 +298,7 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
                           }).toList(),
                           onChanged: (v) {
                             setState(() {
-                              subject = v;
+                              subject = normalize(v!);
                             });
                           },
                         );

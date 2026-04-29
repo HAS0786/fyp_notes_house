@@ -123,17 +123,29 @@ class _QuizScreenState extends State<QuizScreen> {
     for (int i = 0; i < questions.length; i++) {
       final q = questions[i];
 
-      int correct =
-          int.tryParse(q['correct']?.toString() ?? '') ?? -1;
+      int correctIndex = -1;
 
-      final selected = selectedAnswers[i];
+      // Case 1: normal quiz
+      if (q['correct'] != null) {
+        correctIndex = int.tryParse(q['correct'].toString()) ?? -1;
+      }
 
-      if (correct != -1 && selected == correct) {
+      // Case 2: AI quiz
+      else if (q['answer'] != null) {
+        var ans = q['answer'];
+
+        if (ans is int) {
+          correctIndex = ans;
+        } else if (ans is String && ans.isNotEmpty) {
+          correctIndex = ans.toUpperCase().codeUnitAt(0) - 65;
+        }
+      }
+
+      if (selectedAnswers[i] == correctIndex) {
         score++;
       }
     }
   }
-
   Future<void> _saveAttempt(int total) async {
     final user = FirebaseAuth.instance.currentUser!;
     final accuracy = ((score / total) * 100).round();
