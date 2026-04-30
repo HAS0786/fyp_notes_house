@@ -6,8 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 
 class NoteUploadService {
-  // static const String baseUrl = "http://192.168.100.13:3000";
-  static const String baseUrl = "http://10.99.151.209:3000";
+  static const String baseUrl = "http://192.168.100.13:3000";
+  // static const String baseUrl = "http://10.99.151.209:3000";
 
   static Future<String> generateFileHash(File file) async {
     final bytes = await file.readAsBytes();

@@ -55,12 +55,14 @@ dependencies:
   firebase_messaging: ^16.1.0 # for Messaging FCM
   flutter_local_notifications: ^19.5.0 # for displaying Notification on Screen like WhatsApp
   flutter_markdown: ^0.7.7+1
+
 #  firebase_storage: ^13.0.5  # now Paid So I not used this:::
 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -75,7 +77,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -91,6 +92,10 @@ flutter:
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
 

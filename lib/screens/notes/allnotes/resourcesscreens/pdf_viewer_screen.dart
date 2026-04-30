@@ -47,7 +47,6 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
           path.toLowerCase().endsWith(".jpg") ||
           path.toLowerCase().endsWith(".jpeg");
 
-  // 🔹 Download file temporarily
   Future<void> _downloadTempFile() async {
     try {
       final response = await http.get(Uri.parse(widget.fileUrl));
@@ -63,17 +62,6 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
       });
     } catch (e) {
       _showMessage('Failed to load file');
-    }
-  }
-
-  // 🔹 Open unsupported files externally
-  Future<void> _openExternally() async {
-    final url = Uri.parse(widget.fileUrl);
-
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      _showMessage("Cannot open file");
     }
   }
 
@@ -144,17 +132,22 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
         backgroundColor: Colors.lightBlue,
         icon: const Icon(Icons.smart_toy),
         label: const Text('Ask AI'),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AIChatScreen(
-                pdfPath: localPath!,
-                pdfTitle: widget.title,
+          onPressed: () {
+            if (localPath == null) {
+              _showMessage("File still loading...");
+              return;
+            }
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AIChatScreen(
+                  pdfPath: localPath!,
+                  pdfTitle: widget.title,
+                ),
               ),
-            ),
-          );
-        },
+            );
+          }
       ),
     );
   }

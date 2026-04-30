@@ -90,15 +90,38 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
     }
 
     return query.snapshots().map((snapshot) {
-      print("Docs count: ${snapshot.docs.length}"); // DEBUG
+      print("Docs count: ${snapshot.docs.length}");
 
-      return snapshot.docs
+      final semesters = snapshot.docs
           .map((doc) => doc['semester'])
+          .map((e) {
+        if (e == null) return null;
+
+        // ✔ int case
+        if (e is int) return e;
+
+        // ✔ string "2"
+        if (e is String && RegExp(r'^\d+$').hasMatch(e)) {
+          return int.tryParse(e);
+        }
+
+        // ✔ string "Semester 2"
+        if (e is String && e.toLowerCase().contains("semester")) {
+          return int.tryParse(
+            e.replaceAll(RegExp(r'[^0-9]'), ''),
+          );
+        }
+
+        return null;
+      })
           .where((e) => e != null)
           .cast<int>()
           .toSet()
-          .toList()
-        ..sort();
+          .toList();
+
+      print("Semesters extracted: $semesters"); // DEBUG
+
+      return semesters..sort();
     });
   }
   /// 🔹 SUBJECT (FROM QUIZZES)

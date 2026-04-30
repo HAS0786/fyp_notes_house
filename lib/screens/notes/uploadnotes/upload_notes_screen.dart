@@ -70,7 +70,7 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
       academic.university = widget.noteData!['university'];
       academic.location = widget.noteData!['location'];
       academic.department = widget.noteData!['department'];
-      academic.semester = "Semester ${widget.noteData!['semester']}";
+      academic.semester = widget.noteData!['semester'];
       selectedTypeofDocument =
           widget.noteData!['resourceType'] ??
           widget.noteData!['category'] ??
@@ -127,7 +127,7 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
             'university': academic.university,
             'location': academic.location,
             'department': academic.department,
-            'semester': int.parse(academic.semester!.split(' ').last),
+            'semester': academic.semester!,
             'resourceType': selectedTypeofDocument,
             'updatedAt': FieldValue.serverTimestamp(),
           });
@@ -179,7 +179,7 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
         location: normalize(academic.location!),
         department: normalize(academic.department!),
         subject: normalize(academic.subject!),
-        semester: int.parse(academic.semester!.split(' ').last),
+        semester: academic.semester!,
         resourceType: selectedTypeofDocument!,
         fileId: fileId,
       );

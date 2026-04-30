@@ -4,10 +4,11 @@ import 'semester_screen.dart';
 
 class DepartmentScreen extends StatelessWidget {
   final String universityName;
-
+  final String location;
   const DepartmentScreen({
     super.key,
     required this.universityName,
+    required this.location,
   });
 
   @override
@@ -24,6 +25,7 @@ class DepartmentScreen extends StatelessWidget {
         stream: FirebaseFirestore.instance
             .collection('departments')
             .where('university', isEqualTo: universityName)
+            .where('location', isEqualTo: location)
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {

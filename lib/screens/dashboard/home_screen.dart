@@ -201,8 +201,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final token = await user.getIdToken();
 
     final response = await http.post(
-      // Uri.parse("http://192.168.100.13:3000/retry-teacher"),
-      Uri.parse("http://10.99.151.209:3000/retry-teacher"),
+      Uri.parse("http://192.168.100.13:3000/retry-teacher"),
+      // Uri.parse("http://10.99.151.209:3000/retry-teacher"),
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",

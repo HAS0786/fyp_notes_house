@@ -1,5 +1,7 @@
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fyp_ui_design/screens/notes/allnotes/campusScreen.dart';
 import 'department_screen.dart';
 
 class SelectUniversityScreen extends StatelessWidget {
@@ -75,7 +77,9 @@ class SelectUniversityScreen extends StatelessWidget {
                   subtitle: Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
-                      data['location'] ?? 'Location not provided',
+                      data['location'] is List
+                          ? (data['location'] as List).join(", ")
+                          : (data['location'] ?? 'Location not provided').toString(),
                       style: const TextStyle(color: Colors.black54),
                     ),
                   ),
@@ -86,16 +90,25 @@ class SelectUniversityScreen extends StatelessWidget {
                     color: Colors.black45,
                   ),
 
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => DepartmentScreen(
-                          universityName: data['name'],
+                    onTap: () {
+                      final rawLocation = data['location'];
+
+                      final List<String> locations = rawLocation is List
+                          ? rawLocation.map((e) => e.toString()).toList()
+                          : rawLocation != null
+                          ? [rawLocation.toString()]
+                          : [];
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CampusScreen(
+                            universityName: data['name'].toString(),
+                            locations: locations, // ✅ ALWAYS LIST
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    }
                 ),
               );
             },

@@ -13,10 +13,10 @@ import 'package:path/path.dart' as p;
 class AIQuizUploadScreen extends StatefulWidget {
   final bool isTeacher;
 
-  static _AIQuizUploadScreenState? _instance;
-  static void submit() {
-    _instance?._saveQuiz();
-  }
+  // static _AIQuizUploadScreenState? _instance;
+  // static void submit() {
+  //   _instance?._saveQuiz();
+  // }
   const AIQuizUploadScreen({super.key, required this.isTeacher});
 
   @override
@@ -30,8 +30,9 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
   bool loading = false;
 
   List generatedQuiz = [];
-  // final String baseUrl = "http://192.168.100.13:3000";
-  final String baseUrl = "http://10.99.151.209:3000";
+  final String baseUrl = "http://192.168.100.13:3000";
+  // final String baseUrl = "http://10.99.151.209:3000";
+
 
   //  PICK FILE
   Future<void> _pickFile() async {
@@ -68,6 +69,13 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
       );
       request.headers['Authorization'] = 'Bearer $token';
       request.files.add(await http.MultipartFile.fromPath("file", selectedFile!.path));
+
+      request.fields['subject'] = academic.subject ?? "";
+      request.fields['university'] = academic.university ?? "";
+      request.fields['department'] = academic.department ?? "";
+      request.fields['semester'] =
+          academic.semester?.toString() ?? "";
+      request.fields['location'] = academic.location ?? "";
 
       final response = await request.send();
       final resBody = await response.stream.bytesToString();
@@ -106,6 +114,18 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
       }
 
       if (widget.isTeacher) {
+
+
+        if (academic.university == null ||
+            academic.department == null ||
+            academic.semester == null ||
+            academic.subject == null) {
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Please fill Academic Info first")),
+          );
+          return;
+        }
         // 🔵 TEACHER FLOW (same as before)
         final updatedQuiz = await Navigator.push(
           context,
@@ -151,11 +171,11 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    AIQuizUploadScreen._instance = this;
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   AIQuizUploadScreen._instance = this;
+  // }
 
 
 
@@ -174,17 +194,26 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
     setState(() => isLoading = true);
 
     try{
-      await FirebaseFirestore.instance.collection('quizzes').add({
-        "university": academic.university,
-        "department": academic.department,
-        "location": academic.location,
-        "semester": int.tryParse(academic.semester?.split(' ').last ?? '') ?? 0,
-        "subject": academic.subject,
-        "questions": generatedQuiz,
-        "isPublic": true,
-        "createdAt": Timestamp.now(),
-      });
+      final user = FirebaseAuth.instance.currentUser;
+      final token = await user?.getIdToken();
 
+      final res = await http.post(
+        Uri.parse("$baseUrl/upload-quiz"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({
+          "subject": academic.subject,
+          "university": academic.university,
+          "department": academic.department,
+          "semester": academic.semester,
+          "location": academic.location,
+          "questions": generatedQuiz,
+          "teacherName": user?.displayName ?? "Teacher",
+          "type": "ai",
+        }),
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             backgroundColor: Colors.green,
@@ -254,7 +283,7 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                           children: [
 
                             const Text(
-                              'Quiz Information',
+                              'Academic Information',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -367,7 +396,12 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                   loading
                       ? const CircularProgressIndicator()
                       :ElevatedButton(
-                    onPressed: generateQuiz,
+                    onPressed: (academic.university == null ||
+                        academic.department == null ||
+                        academic.semester == null ||
+                        academic.subject == null)
+                        ? null
+                        : generateQuiz,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
@@ -438,6 +472,18 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: _saveQuiz,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                      ),
+                      child: const Text(
+                        "Submit Quiz",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
                   ]
                 ],
               ),
@@ -477,3 +523,17 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
     );
   }
 }
+
+
+// await FirebaseFirestore.instance.collection('quizzes').add({
+//   "university": academic.university,
+//   "department": academic.department,
+//   "location": academic.location,
+//   "semester": int.tryParse(academic.semester?.split(' ').last ?? '') ?? 0,
+//   "subject": academic.subject,
+//   "questions": generatedQuiz,
+//   "userId": user?.uid,
+//   "type": "ai",
+//   "isPublic": true,
+//   "createdAt": Timestamp.now(),
+// });

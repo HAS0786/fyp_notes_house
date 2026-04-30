@@ -91,9 +91,10 @@ class _CreateMCQScreenState extends State<CreateMCQScreen> {
       university: academic.university!,
       location: academic.location!,
       department: academic.department!,
-      semester: int.parse(academic.semester!.split(' ').last),
+      semester: academic.semester!,
       subject: academic.subject!,
       questions: allQuestions,
+      type: "manual",
     );
 
     if (!mounted) return;
@@ -134,7 +135,7 @@ class _CreateMCQScreenState extends State<CreateMCQScreen> {
                     children: [
 
                       const Text(
-                        'Quiz Information',
+                        'Academic Information',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

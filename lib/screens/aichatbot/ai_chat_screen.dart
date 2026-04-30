@@ -31,8 +31,8 @@ class _AIChatScreenState extends State<AIChatScreen> {
 
   bool isLoading = false;
 
-  // final String baseUrl = "http://192.168.100.13:3000";
-  final String baseUrl = "http://10.99.151.209:3000";
+  final String baseUrl = "http://192.168.100.13:3000";
+  // final String baseUrl = "http://10.99.151.209:3000";
 
   @override
   void initState() {
@@ -40,6 +40,12 @@ class _AIChatScreenState extends State<AIChatScreen> {
 
     if (widget.pdfPath != null) {
       pickedFilePath = widget.pdfPath;
+
+      messages.add({
+        "text": "📎 ${widget.pdfTitle ?? "PDF attached"}",
+        "isUser": true,
+        "isTyped": true,
+      });
     }
 
     if (widget.sessionId != null) {
@@ -135,9 +141,13 @@ class _AIChatScreenState extends State<AIChatScreen> {
       request.fields["sessionId"] = sessionId!;
     }
 
-    if (pickedFilePath != null) {
+    final filePathToUse = pickedFilePath ?? widget.pdfPath;
+
+    if (filePathToUse != null) {
+      print("SENDING FILE: $filePathToUse");
+
       request.files.add(
-        await http.MultipartFile.fromPath("file", pickedFilePath!),
+        await http.MultipartFile.fromPath("file", filePathToUse),
       );
     }
 
@@ -161,7 +171,6 @@ class _AIChatScreenState extends State<AIChatScreen> {
       messages.add({"text": data["answer"], "isUser": false, "isTyped": false});
 
       isLoading = false;
-      pickedFilePath = null;
     });
 
     Future.delayed(Duration(milliseconds: 100), () {

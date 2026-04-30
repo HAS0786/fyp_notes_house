@@ -5,7 +5,7 @@ class AIQuizEditScreen extends StatefulWidget {
   final List quiz;
   final String? university;
   final String? department;
-  final String? semester;
+  final int? semester;
   final String? subject;
 
   const AIQuizEditScreen({
@@ -39,21 +39,21 @@ class _AIQuizEditScreenState extends State<AIQuizEditScreen> {
   }
 
   Future<void> _saveQuiz() async {
-    await FirebaseFirestore.instance.collection('quizzes').add({
-      "university": widget.university,
-      "department": widget.department,
-      "semester": int.tryParse(widget.semester ?? "1") ?? 1,
-      "subject": widget.subject,
-      "questions": quiz,
-      "isPublic": true,
-      "createdAt": Timestamp.now(),
-    });
+    // await FirebaseFirestore.instance.collection('quizzes').add({
+    //   "university": widget.university,
+    //   "department": widget.department,
+    //   "semester": widget.semester,
+    //   "subject": widget.subject,
+    //   "questions": quiz,
+    //   "isPublic": true,
+    //   "createdAt": Timestamp.now(),
+    // });
 
-    if (!mounted) return;
+    // if (!mounted) return;
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text("AI Quiz Saved")));
+    // ScaffoldMessenger.of(
+    //   context,
+    // ).showSnackBar(SnackBar(content: Text("AI Quiz Saved")));
 
     Navigator.pop(context, quiz);
   }

@@ -6,7 +6,7 @@ class AcademicSelection {
   String? location;
   String? department;
   String? subject;
-  String? semester;
+  int? semester;
 
   AcademicSelection({
     this.university,
@@ -35,8 +35,8 @@ class _AcademicInfoFormState extends State<AcademicInfoForm> {
   late AcademicSelection data;
   final locationCtrl = TextEditingController();
 
-  final List<String> semesters =
-  List.generate(8, (i) => 'Semester ${i + 1}');
+  final List<int> semesters =
+  List.generate(8, (i) => i + 1);
 
   @override
   void initState() {
@@ -129,7 +129,13 @@ class _AcademicInfoFormState extends State<AcademicInfoForm> {
       builder: (_) => AlertDialog(
         title: Text("Add $type"),
 
-        content: TextField(controller: controller),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: "Enter new ${type.toLowerCase()}",
+            border: OutlineInputBorder(),
+          ),
+        ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
@@ -362,15 +368,20 @@ class _AcademicInfoFormState extends State<AcademicInfoForm> {
         const SizedBox(height: 12),
 
         /// SEMESTER
-        DropdownButtonFormField(
+        DropdownButtonFormField<int>(
           value: data.semester,
-          items: semesters
-              .map((e) =>
-              DropdownMenuItem(value: e, child: Text(e)))
-              .toList(),
-          onChanged: (v) =>
-              update(() => data.semester = v),
-          decoration: const InputDecoration(labelText: "Semester"),
+          items: semesters.map((e) {
+            return DropdownMenuItem<int>(
+              value: e,
+              child: Text("Semester $e"),
+            );
+          }).toList(),
+          onChanged: (v) {
+            update(() => data.semester = v);
+          },
+          decoration: const InputDecoration(
+            labelText: "Semester",
+          ),
         ),
       ],
     );

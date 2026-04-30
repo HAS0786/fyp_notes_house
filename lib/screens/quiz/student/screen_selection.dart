@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:fyp_ui_design/screens/quiz/ai_based_quiz/ai_quiz_upload_screen.dart';
-import 'package:fyp_ui_design/screens/quiz/quiz_list_screen.dart';
 import 'package:fyp_ui_design/screens/quiz/student/quiz_filter_screen.dart';
 class StudentScreenSelection extends StatefulWidget {
   final String university;

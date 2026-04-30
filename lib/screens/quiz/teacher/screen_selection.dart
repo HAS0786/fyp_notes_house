@@ -26,10 +26,6 @@ class _TeacherScreenSelectionState extends State<TeacherScreenSelection> {
               if (selectedTab == 0) {
                 CreateMCQScreen.submit();
               }
-              else {
-                AIQuizUploadScreen.submit();
-              }
-
             },
             child: const Text(
               "Submit",

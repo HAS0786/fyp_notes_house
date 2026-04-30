@@ -15,8 +15,8 @@ class ChatSessionsScreen extends StatefulWidget {
 class _ChatSessionsScreenState extends State<ChatSessionsScreen> {
   List sessions = [];
 
-  // final String baseUrl = "http://192.168.100.13:3000";
-  final String baseUrl = "http://10.99.151.209:3000";
+  final String baseUrl = "http://192.168.100.13:3000";
+  // final String baseUrl = "http://10.99.151.209:3000";
 
   @override
   void initState() {
