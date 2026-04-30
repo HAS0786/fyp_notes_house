@@ -30,8 +30,8 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
   bool loading = false;
 
   List generatedQuiz = [];
-  final String baseUrl = "http://192.168.100.13:3000";
-  // final String baseUrl = "http://10.99.151.209:3000";
+  // final String baseUrl = "http://192.168.100.13:3000";
+  final String baseUrl = "http://10.99.151.209:3000";
 
   //  PICK FILE
   Future<void> _pickFile() async {

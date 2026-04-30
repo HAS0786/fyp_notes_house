@@ -31,8 +31,8 @@ class _AIChatScreenState extends State<AIChatScreen> {
 
   bool isLoading = false;
 
-  final String baseUrl = "http://192.168.100.13:3000";
-  // final String baseUrl = "http://10.99.151.209:3000";
+  // final String baseUrl = "http://192.168.100.13:3000";
+  final String baseUrl = "http://10.99.151.209:3000";
 
   @override
   void initState() {

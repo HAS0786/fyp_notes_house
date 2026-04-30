@@ -18,7 +18,8 @@ class AdminNotesScreen extends StatelessWidget {
     final token = await _getToken();
 
     await http.post(
-      Uri.parse("http://192.168.100.13:3000/approve-note"),
+      // Uri.parse("http://192.168.100.13:3000/approve-note"),
+      Uri.parse("http://10.99.151.209:3000/approve-note"),
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",
@@ -38,7 +39,8 @@ class AdminNotesScreen extends StatelessWidget {
     final token = await _getToken();
 
     await http.post(
-      Uri.parse("http://192.168.100.13:3000/reject-note"),
+      // Uri.parse("http://192.168.100.13:3000/reject-note"),
+      Uri.parse("http://10.99.151.209:3000/reject-note"),
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",

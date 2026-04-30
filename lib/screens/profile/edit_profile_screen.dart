@@ -19,6 +19,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String _email = '';
   String? _imagePath;
   bool _loading = false;
+  String? _department;
+  int? _semester;
 
   @override
   void initState() {
@@ -37,6 +39,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
   }
 
+  String normalize(String text) {
+    return text.toLowerCase().trim();
+  }
   /// PICK IMAGE
   Future<void> _pickImage() async {
     final picker = ImagePicker();

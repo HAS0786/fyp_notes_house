@@ -78,8 +78,8 @@ class _QuizScreenState extends State<QuizScreen> {
   Future<Map<String, dynamic>?> fetchQuizFromAPI() async {
     try {
       final url = Uri.parse(
-        "http://192.168.100.13:3000/get-quiz/${widget.quizId}",
-        // "http://10.99.151.209:3000/get-quiz/${widget.quizId}",
+        // "http://192.168.100.13:3000/get-quiz/${widget.quizId}",
+        "http://10.99.151.209:3000/get-quiz/${widget.quizId}",
       );
 
       final response = await http.get(url);

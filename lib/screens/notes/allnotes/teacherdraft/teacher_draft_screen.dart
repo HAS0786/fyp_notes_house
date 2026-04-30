@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fyp_ui_design/screens/notes/uploadnotes/upload_notes_screen.dart';
 import 'package:http/http.dart' as http;
 
 class TeacherDraftScreen extends StatefulWidget {
@@ -15,7 +16,8 @@ class _TeacherDraftScreenState extends State<TeacherDraftScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
 
-  final String baseUrl = "http://192.168.100.13:3000";
+  // final String baseUrl = "http://192.168.100.13:3000";
+  final String baseUrl = "http://10.99.151.209:3000";
 
   List notes = [];
   bool isLoading = true;
@@ -79,6 +81,7 @@ class _TeacherDraftScreenState extends State<TeacherDraftScreen>
     fetchNotes();
   }
 
+
   Future<void> resubmitNote(String id) async {
     final token = await _getToken();
     await http.post(
@@ -115,10 +118,13 @@ class _TeacherDraftScreenState extends State<TeacherDraftScreen>
 
     Color statusColor;
     if (status == "approved") {
+
       statusColor = Colors.green;
     } else if (status == "rejected") {
+
       statusColor = Colors.red;
     } else {
+
       statusColor = Colors.orange;
     }
 
@@ -202,7 +208,18 @@ class _TeacherDraftScreenState extends State<TeacherDraftScreen>
               if (status == "pending" || status == "rejected")
                 IconButton(
                   icon: const Icon(Icons.edit, size: 20),
-                  onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => UploadNoteScreen(
+                            isEdit: true,
+                            noteData: note,
+                            noteId: note['id'],
+                          ),
+                        ),
+                      );
+                    },
                 ),
 
               if (status != "approved")
@@ -268,9 +285,12 @@ class _TeacherDraftScreenState extends State<TeacherDraftScreen>
           controller: _tabController,
 
           tabs: const [
-            Tab(text: "Pending",),
-            Tab(text: "Approved"),
-            Tab(text: "Rejected"),
+            Tab(icon:Icon(Icons.pending_actions_outlined,color: Colors.orangeAccent,),
+              text: "Pending",),
+            Tab(icon: Icon(Icons.check_circle_outline_sharp,color: Colors.green,),
+                text: "Approved"),
+            Tab(icon: Icon(Icons.block_flipped,color: Colors.red,),
+                text: "Rejected"),
           ],
         ),
       ),

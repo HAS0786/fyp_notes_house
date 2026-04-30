@@ -1,108 +1,177 @@
-  import 'dart:io';
-  import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fyp_ui_design/widgets/academic_info_form.dart';
-  import 'package:path/path.dart';
-  import 'package:fyp_ui_design/firebase/services/note_upload_service.dart';
-  import 'package:flutter/material.dart';
-  import 'package:file_picker/file_picker.dart';
-  import 'dart:convert';
+import 'package:path/path.dart';
+import 'package:fyp_ui_design/firebase/services/note_upload_service.dart';
+import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:convert';
 
-  class UploadNoteScreen extends StatefulWidget {
-    const UploadNoteScreen({super.key});
-  
-    @override
-    State<UploadNoteScreen> createState() => _UploadNoteScreenState();
+class UploadNoteScreen extends StatefulWidget {
+  final bool isEdit;
+  final Map<String, dynamic>? noteData;
+  final String? noteId;
+  const UploadNoteScreen({
+    super.key,
+    this.isEdit = false,
+    this.noteData,
+    this.noteId,
+  });
+
+  @override
+  State<UploadNoteScreen> createState() => _UploadNoteScreenState();
+}
+
+class _UploadNoteScreenState extends State<UploadNoteScreen> {
+  bool isUploading = false;
+  AcademicSelection academic = AcademicSelection();
+  String? selectedTypeofDocument;
+
+  // Controllers
+  final titleCtrl = TextEditingController();
+  final descCtrl = TextEditingController();
+
+  // Selected file
+  File? selectedFile;
+
+  List<String> typeofDocument = [
+    'Books',
+    'Notes',
+    'Past Papers',
+    'Assignments ',
+    'Lab Manuals',
+    'Projects',
+  ];
+
+  // Add new item dialog
+  String normalize(String input) {
+    input = input.trim();
+    if (input.isEmpty) return "";
+
+    List<String> words = input.split(' ');
+    List<String> result = [];
+
+    for (var word in words) {
+      if (word.isEmpty) continue;
+      result.add(word[0].toUpperCase() + word.substring(1).toLowerCase());
+    }
+
+    return result.join(' ');
   }
-  
-  class _UploadNoteScreenState extends State<UploadNoteScreen> {
-    bool isUploading = false;
-    AcademicSelection academic = AcademicSelection();
-    String? selectedTypeofDocument;
-  
-    // Controllers
-    final titleCtrl = TextEditingController();
-    final descCtrl = TextEditingController();
 
-    // Selected file
-    File? selectedFile;
-
-    List<String> typeofDocument = [
-      'Books',
-      'Notes',
-      'Past Papers',
-      'Assignments ',
-      'Lab Manuals',
-      'Projects',
-    ];
-  
-    // Add new item dialog
-    String normalize(String input) {
-      input = input.trim();
-      if (input.isEmpty) return "";
-
-      List<String> words = input.split(' ');
-      List<String> result = [];
-
-      for (var word in words) {
-        if (word.isEmpty) continue;
-        result.add(
-          word[0].toUpperCase() + word.substring(1).toLowerCase(),
-        );
-      }
-
-      return result.join(' ');
+  @override
+  void initState() {
+    super.initState();
+    selectedFile = null;
+    if (widget.isEdit && widget.noteData != null) {
+      titleCtrl.text = widget.noteData!['title'] ?? '';
+      descCtrl.text = widget.noteData!['description'] ?? '';
+      academic.subject = widget.noteData!['subject'] ?? '';
+      academic.university = widget.noteData!['university'];
+      academic.location = widget.noteData!['location'];
+      academic.department = widget.noteData!['department'];
+      academic.semester = "Semester ${widget.noteData!['semester']}";
+      selectedTypeofDocument =
+          widget.noteData!['resourceType'] ??
+          widget.noteData!['category'] ??
+          widget.noteData!['type'] ??
+          widget.noteData!['documentType'];
     }
-    Future<void> _pickFile() async {
-      final result = await FilePicker.platform.pickFiles(
-        allowMultiple: false,
-        type: FileType.any, //  IMPORTANT
+    print(widget.noteData);
+  }
+
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: false,
+      type: FileType.any, //  IMPORTANT
+    );
+
+    if (result != null && result.files.single.path != null) {
+      final file = File(result.files.single.path!);
+
+      setState(() {
+        selectedFile = file;
+      });
+
+      debugPrint("FILE PICKED: ${file.path}");
+    }
+  }
+
+  // Upload note
+  Future<void> _uploadNote(BuildContext context) async {
+    if (titleCtrl.text.trim().isEmpty ||
+    academic.university == null ||
+        academic.location == null ||
+        academic.department == null ||
+        academic.semester == null ||
+        academic.subject == null ||
+        (widget.isEdit == false && selectedFile == null) ||
+        selectedTypeofDocument == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please fill all fields'),backgroundColor: Colors.red,));
+      return;
+    }
+
+    setState(() => isUploading = true);
+
+    /// 🔥 EDIT MODE
+    if (widget.isEdit && widget.noteId != null) {
+      await FirebaseFirestore.instance
+          .collection('notes')
+          .doc(widget.noteId)
+          .update({
+            'title': titleCtrl.text.trim(),
+            'description': descCtrl.text.trim(),
+            'subject': academic.subject,
+            'university': academic.university,
+            'location': academic.location,
+            'department': academic.department,
+            'semester': int.parse(academic.semester!.split(' ').last),
+            'resourceType': selectedTypeofDocument,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+
+      await _ensureUniversityHasLocation();
+
+      setState(() => isUploading = false);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.green,
+          content: Text('Note uploaded successfully'),
+        ),
       );
-  
-      if (result != null && result.files.single.path != null) {
-        final file = File(result.files.single.path!);
-  
-        setState(() {
-          selectedFile = file; //  force new reference
-        });
-  
-        debugPrint("FILE PICKED: ${file.path}");
-      }
+      Navigator.pop(context);
     }
-  
-    // Upload note
-    Future<void> _uploadNote(BuildContext context) async {
-      if (academic.university == null ||
-          academic.location == null ||
-          academic.department == null ||
-          academic.semester == null ||
-          academic.subject == null ||
-          selectedFile == null ||
-          selectedTypeofDocument == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
-        return;
-      }
+    /// 🔥 NEW NOTE
+    else {
       final fileId = await NoteUploadService.generateFileHash(selectedFile!);
-  // 🔍 check duplicate
+
       final existing = await FirebaseFirestore.instance
           .collection('notes')
           .where('fileId', isEqualTo: fileId)
-          .where('university', isEqualTo: normalize(academic.university!))
-          .where('location', isEqualTo: normalize(academic.location!))
-          .where('department', isEqualTo: normalize(academic.department!))
           .where('subject', isEqualTo: normalize(academic.subject!))
+          .where('department', isEqualTo: normalize(academic.department!))
           .get();
-  
+
       if (existing.docs.isNotEmpty) {
-        if (!mounted) return;
-  
+        setState(() => isUploading = false);
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("File already uploaded")),
+          const SnackBar(
+            content: Text(
+              "File already uploaded",
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
         return;
       }
-      setState(() => isUploading = true);
+
       final success = await NoteUploadService.uploadNote(
         file: selectedFile!,
         title: titleCtrl.text.trim(),
@@ -114,17 +183,21 @@ import 'package:fyp_ui_design/widgets/academic_info_form.dart';
         resourceType: selectedTypeofDocument!,
         fileId: fileId,
       );
-  
-      if (!mounted) return;
+
+      await _ensureUniversityHasLocation();
+
       setState(() => isUploading = false);
-  
+
+      if (!mounted) return;
+
       if (success) {
-        await _ensureUniversityHasLocation(); // ADD THIS LINE
-  
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
+            content: Text(
+              'Note uploaded in Draft and pending for Admin-Review',
+              style: TextStyle(color: Colors.white),
+            ),
             backgroundColor: Colors.green,
-            content: Text('Note uploaded successfully'),
           ),
         );
         Navigator.pop(context);
@@ -134,34 +207,41 @@ import 'package:fyp_ui_design/widgets/academic_info_form.dart';
         ).showSnackBar(const SnackBar(content: Text('Upload failed')));
       }
     }
+  }
 
-    Future<void> _ensureUniversityHasLocation() async {
-      final db = FirebaseFirestore.instance;
+  Future<void> _ensureUniversityHasLocation() async {
+    final db = FirebaseFirestore.instance;
 
-      final snap = await db
-          .collection('universities')
-          .where('name', isEqualTo: academic.university)
-          .get();
+    final snap = await db
+        .collection('universities')
+        .where('name', isEqualTo: academic.university)
+        .get();
 
-      if (snap.docs.isEmpty) return;
+    if (snap.docs.isEmpty) return;
 
-      final doc = snap.docs.first;
+    final doc = snap.docs.first;
 
-      final loc = normalize(academic.location!);
+    final loc = normalize(academic.location!);
 
-      await doc.reference.set({
-        'location': FieldValue.arrayUnion([loc]),
-      }, SetOptions(merge: true));
-    }
+    await doc.reference.set({
+      'location': FieldValue.arrayUnion([loc]),
+    }, SetOptions(merge: true));
+  }
 
+  // For displaying Clean Name to User (when Edit button Click)
 
-    @override
-    Widget build(BuildContext context) {
-      return Stack(
-        children:[ Scaffold(
+  String getCleanName(String url) {
+    final name = basename(url);
+    return name.replaceFirst(RegExp(r'^\d+-'), '');
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Scaffold(
           backgroundColor: const Color(0xFFF4F6F8),
           appBar: AppBar(
-            title: const Text('Upload Note'),
+            title: Text(widget.isEdit ? 'Edit Note' : 'Upload Note'),
             backgroundColor: Colors.lightBlue,
             foregroundColor: Colors.white,
             actions: [
@@ -171,17 +251,18 @@ import 'package:fyp_ui_design/widgets/academic_info_form.dart';
                 },
                 child: const Text(
                   'Upload',
-                  style:
-                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),            ),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
-  
               children: [
-  
                 /// ================= ACADEMIC INFO =================
                 _card(
                   title: 'Academic Information',
@@ -209,6 +290,7 @@ import 'package:fyp_ui_design/widgets/academic_info_form.dart';
                     },
                   ),
                 ),
+
                 /// ================= FILE UPLOAD =================
                 _card(
                   title: 'Upload File',
@@ -246,7 +328,10 @@ import 'package:fyp_ui_design/widgets/academic_info_form.dart';
                           Text(
                             selectedFile != null
                                 ? basename(selectedFile!.path)
-                                : 'Tap to upload PDF or Image',
+                                :  (widget.isEdit
+                                ? getCleanName(widget.noteData?['fileUrl'] ??
+                                            "File already uploaded")
+                                      : "Tap to upload PDF or Image"),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 14,
@@ -275,16 +360,16 @@ import 'package:fyp_ui_design/widgets/academic_info_form.dart';
                                   fontSize: 12,
                                 ),
                               ),
-                            )
-                          ]
+                            ),
+                          ],
                         ],
                       ),
                     ),
                   ),
                 ),
-  
+
                 const SizedBox(height: 20),
-  
+
                 /// ================= NOTE DETAILS =================
                 _card(
                   title: 'Note Details',
@@ -292,8 +377,9 @@ import 'package:fyp_ui_design/widgets/academic_info_form.dart';
                     children: [
                       TextField(
                         controller: titleCtrl,
-                        decoration:
-                        const InputDecoration(labelText: 'Note Title'),
+                        decoration: const InputDecoration(
+                          labelText: 'Note Title',
+                        ),
                       ),
                       const SizedBox(height: 12),
                       TextField(
@@ -310,61 +396,60 @@ import 'package:fyp_ui_design/widgets/academic_info_form.dart';
             ),
           ),
         ),
-          if (isUploading)
-            Center(
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.lightBlue.shade400,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      "Uploading Notes...",
-                      style: TextStyle(fontSize:15,color: Colors.white),
-                    ),
-                  ],
-                ),
+        if (isUploading)
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.lightBlue.shade400,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    "Uploading Notes...",
+                    style: TextStyle(fontSize: 15, color: Colors.white),
+                  ),
+                ],
               ),
             ),
-        ],
-      );
-    }
-  
-    /// ================= CARD HELPER =================
-    Widget _card({required String title, required Widget child}) {
-      return Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style:
-                const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const Divider(),
-              child,
-            ],
           ),
-        ),
-      );
-    }
-  
-    @override
-    void dispose() {
-      titleCtrl.dispose();
-      descCtrl.dispose();
-      super.dispose();
-    }
+      ],
+    );
   }
+
+  /// ================= CARD HELPER =================
+  Widget _card({required String title, required Widget child}) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const Divider(),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    titleCtrl.dispose();
+    descCtrl.dispose();
+    super.dispose();
+  }
+}

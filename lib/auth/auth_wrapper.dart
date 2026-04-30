@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_ui_design/screens/admin/admin_dashboard_screen.dart';
+import 'package:fyp_ui_design/screens/roles_selection/student_details_screen.dart';
 
 import '../screens/dashboard/home_screen.dart';
 import '../screens/dashboard/pendingapproval/pendingapprovalscreen.dart';
@@ -18,21 +19,36 @@ class AuthWrapper extends StatefulWidget {
 class _AuthWrapperState extends State<AuthWrapper> {
 
   /// 🔹 Fetch role safely
-  Future<String?> _getRole(User user) async {
+  Future<Map<String, dynamic>?> _getUserData(User user) async {
     final doc = await FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
         .get();
 
     if (!doc.exists) return null;
-    return doc.data()?['role'];
+    return doc.data();
   }
 
   @override
   void initState() {
     super.initState();
 
-    // 🔔 App opened via notification
+    /// 🔔 FOREGROUND NOTIFICATION (THIS IS MISSING)
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      final title = message.data['title'] ?? 'Notification';
+      final body = message.data['body'] ?? '';
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("$title\n$body"),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    });
+
+    /// 🔔 CLICK NOTIFICATION
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       final data = message.data;
 
@@ -45,7 +61,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
       );
     });
   }
-
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
@@ -67,8 +82,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
         final user = authSnap.data!;
 
         // ✅ Logged in → fetch role
-        return FutureBuilder<String?>(
-          future: _getRole(user),
+        return FutureBuilder<Map<String, dynamic>?>(
+          future: _getUserData(user),
           builder: (context, roleSnap) {
 
             if (roleSnap.connectionState == ConnectionState.waiting) {
@@ -77,16 +92,27 @@ class _AuthWrapperState extends State<AuthWrapper> {
               );
             }
 
-            // ❌ Role missing → force logout
+            // Role missing → force logout
             if (!roleSnap.hasData || roleSnap.data == null) {
               FirebaseAuth.instance.signOut();
               return const ChooseRoleScreen();
             }
 
-            final role = roleSnap.data!;
+            final data = roleSnap.data!;
+            final role = data['role'];
+            final status = data['status'];
 
-            // 🛑 Pending teacher
-            if (role == 'pending_teacher') {
+            // final university = data['university'];
+            // final department = data['department'];
+            // final semester = data['semester'];
+
+            // /// 🎓 Student details missing
+            // if (role == 'student' &&
+            //     (university == null || department == null || semester == null)) {
+            //   return const StudentDetailsScreen();
+            // }
+            /// 🛑 Pending teacher
+            if (role == 'teacher' && status == 'pending') {
               return const PendingApprovalScreen();
             }
 
@@ -100,7 +126,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
               return const HomeScreen();
             }
 
-            // ❌ Fallback (safety)
+            // Fallback (safety)
             return const Scaffold(
               body: Center(child: Text("Invalid user role")),
             );

@@ -128,6 +128,7 @@ class _AcademicInfoFormState extends State<AcademicInfoForm> {
       context: context,
       builder: (_) => AlertDialog(
         title: Text("Add $type"),
+
         content: TextField(controller: controller),
         actions: [
           TextButton(

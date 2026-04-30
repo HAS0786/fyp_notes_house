@@ -22,13 +22,14 @@ class _SignupScreenState extends State<SignupScreen> {
   final _universityCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   final _confirmPassCtrl = TextEditingController();
-
+  bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
   /// CREATE USER + SAVE DATA
   Future<void> _signup() async {
     if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
 
     try {
       /// CREATE AUTH USER
@@ -68,7 +69,9 @@ class _SignupScreenState extends State<SignupScreen> {
         '/login',
         arguments: widget.isTeacher,
       );
+      setState(() => _isLoading = true);
     } on FirebaseAuthException catch (e) {
+      setState(() => _isLoading = true);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.message ?? 'Signup failed')));
@@ -196,18 +199,31 @@ class _SignupScreenState extends State<SignupScreen> {
               /// SIGNUP BUTTON
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child:    ElevatedButton(
                   onPressed: _signup,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.lightBlue,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  child: Text(
-                    widget.isTeacher ? 'Request Access' : 'Create Account',
+                  child: _isLoading
+                      ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                      : Text(
+                      widget.isTeacher ? 'Request Access' : 'Create Account'
                   ),
                 ),
-              ),
+                ),
+
 
               const SizedBox(height: 20),
 

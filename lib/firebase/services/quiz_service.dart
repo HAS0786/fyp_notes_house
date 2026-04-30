@@ -5,8 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class QuizService {
   static const String
-  _baseUrl = "http://192.168.100.13:3000";
-  // _baseUrl = "http://10.99.151.209:3000";
+  // _baseUrl = "http://192.168.100.13:3000";
+  _baseUrl = "http://10.99.151.209:3000";
 
   static Future<bool> createQuiz({
     required String university,

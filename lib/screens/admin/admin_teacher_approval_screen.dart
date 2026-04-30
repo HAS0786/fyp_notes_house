@@ -16,7 +16,8 @@ class AdminTeacherScreen extends StatelessWidget {
     final token = await _getToken();
 
     await http.post(
-      Uri.parse("http://192.168.100.13:3000/approve-teacher"),
+      // Uri.parse("http://192.168.100.13:3000/approve-teacher"),
+      Uri.parse("http://10.99.151.209:3000/approve-teacher"),
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",
@@ -25,19 +26,59 @@ class AdminTeacherScreen extends StatelessWidget {
     );
   }
 
-  Future<void> rejectTeacher(String teacherId) async {
+  Future<void> rejectTeacher(String teacherId,String reason) async {
     final token = await _getToken();
 
     await http.post(
-      Uri.parse("http://192.168.100.13:3000/reject-teacher"),
+      // Uri.parse("http://192.168.100.13:3000/reject-teacher"),
+      Uri.parse("http://10.99.151.209:3000/reject-teacher"),
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",
       },
-      body: jsonEncode({"teacherId": teacherId}),
+      body: jsonEncode({
+        "teacherId": teacherId,
+        "reason": reason, // 🔥 IMPORTANT
+      }),
     );
   }
+  void showRejectDialog(BuildContext context, String teacherId) {
+    final controller = TextEditingController();
 
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Reject Teacher"),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: "Enter rejection reason",
+          ),
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final reason = controller.text.trim();
+
+              Navigator.pop(context);
+
+              await rejectTeacher(teacherId, reason);
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Teacher rejected")),
+              );
+            },
+            child: const Text("Submit"),
+          ),
+        ],
+      ),
+    );
+  }
   Widget buildInfoRow(IconData icon, String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
@@ -110,7 +151,7 @@ class AdminTeacherScreen extends StatelessWidget {
                   backgroundColor: Colors.red,
                     foregroundColor: Colors.white
                 ),
-                onPressed: () => rejectTeacher(doc.id),
+                onPressed: () => showRejectDialog(context, doc.id),
                 child: const Text("Reject"),
               ),
             ],

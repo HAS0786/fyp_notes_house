@@ -74,15 +74,19 @@ class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
           children: [
             const Icon(Icons.hourglass_top, size: 80, color: Colors.orange),
             const SizedBox(height: 16),
-            const Text(
-              'Approval Pending',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            Center(
+              child: const Text(
+                'Approval Pending',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Your teacher request is under review.\n'
-                  'You can continue using the app as a student.',
-              textAlign: TextAlign.center,
+            Center(
+              child: const Text(
+                'Your teacher request is under review.\n'
+                    'You can continue using the app as a student.',
+                textAlign: TextAlign.center,
+              ),
             ),
             const SizedBox(height: 24),
 
