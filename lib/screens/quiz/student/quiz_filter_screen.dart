@@ -216,7 +216,9 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
                         final data = snapshot.data ?? [];
 
                         return DropdownButtonFormField<String>(
-                          value: data.contains(university) ? university : null,
+                          value: data.any((e) => e.toLowerCase() == (university ?? "").toLowerCase())
+                              ? data.firstWhere((e) => e.toLowerCase() == university!.toLowerCase())
+                              : null,
                           hint: const Text("Select University"),
                           items: data.map((e) {
                             return DropdownMenuItem(
@@ -224,7 +226,7 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
                           }).toList(),
                             onChanged: (v) {
                               setState(() {
-                                university = normalize(v!);
+                                university = v;
                                 campus = null;
                                 department = null;
                                 subject = null;
@@ -244,7 +246,9 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
                         final data = snapshot.data ?? [];
 
                         return DropdownButtonFormField<String>(
-                          value: data.contains(campus) ? campus : null,
+                          value: data.any((e) => e.toLowerCase() == (campus ?? "").toLowerCase())
+                              ? data.firstWhere((e) => e.toLowerCase() == campus!.toLowerCase())
+                              : null,
                           hint: const Text("Select Campus"),
                           items: data.map((e) {
                             return DropdownMenuItem(
@@ -252,7 +256,7 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
                           }).toList(),
                           onChanged: (v) {
                             setState(() {
-                              campus = normalize(v!);
+                              campus = v;
                               department = null;
                               subject = null;
                               semester = null;
@@ -271,8 +275,8 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
                         final data = snapshot.data ?? [];
 
                         return DropdownButtonFormField<String>(
-                          value: data.contains(department)
-                              ? department
+                          value: data.any((e) => e.toLowerCase() == (department ?? "").toLowerCase())
+                              ? data.firstWhere((e) => e.toLowerCase() == department!.toLowerCase())
                               : null,
                           hint: const Text("Select Department"),
                           items: data.map((e) {
@@ -281,7 +285,7 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
                           }).toList(),
                           onChanged: (v) {
                             setState(() {
-                              department = normalize(v!);
+                              department = v;
                               subject = null;
                               semester = null;
                             });
@@ -327,7 +331,9 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
                         final data = snapshot.data ?? [];
 
                         return DropdownButtonFormField<String>(
-                          value: data.contains(subject) ? subject : null,
+                          value: data.any((e) => e.toLowerCase() == (subject ?? "").toLowerCase())
+                              ? data.firstWhere((e) => e.toLowerCase() == subject!.toLowerCase())
+                              : null,
                           hint: const Text("Select Subject"),
                           items: data.map((e) {
                             return DropdownMenuItem(
@@ -335,7 +341,7 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
                           }).toList(),
                           onChanged: (v) {
                             setState(() {
-                              subject = normalize(v!);
+                              subject = v;
                             });
                           },
                         );

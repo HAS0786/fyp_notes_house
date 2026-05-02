@@ -21,15 +21,16 @@ class _TeacherScreenSelectionState extends State<TeacherScreenSelection> {
         backgroundColor: Colors.lightBlue,
         foregroundColor: Colors.white,
         actions: [
+
           TextButton(
             onPressed: () {
               if (selectedTab == 0) {
                 CreateMCQScreen.submit();
               }
             },
-            child: const Text(
-              "Submit",
-              style: TextStyle(color: Colors.white),
+            child: Text(
+              selectedTab == 0 ? "Submit": "",
+              style: const TextStyle(color: Colors.white),
             ),
           ),
         ],

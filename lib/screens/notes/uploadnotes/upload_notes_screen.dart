@@ -71,9 +71,8 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
       academic.location = widget.noteData!['location'];
       academic.department = widget.noteData!['department'];
       academic.semester = widget.noteData!['semester'];
-      selectedTypeofDocument =
-          widget.noteData!['resourceType'] ??
-          widget.noteData!['category'] ??
+      String doc = (widget.noteData?['category'] ?? "").toString().trim();
+      selectedTypeofDocument = typeofDocument.contains(doc) ? doc : null;
           widget.noteData!['type'] ??
           widget.noteData!['documentType'];
     }
@@ -117,62 +116,69 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
 
     /// 🔥 EDIT MODE
     if (widget.isEdit && widget.noteId != null) {
-      await FirebaseFirestore.instance
-          .collection('notes')
-          .doc(widget.noteId)
-          .update({
-            'title': titleCtrl.text.trim(),
-            'description': descCtrl.text.trim(),
-            'subject': academic.subject,
-            'university': academic.university,
-            'location': academic.location,
-            'department': academic.department,
-            'semester': academic.semester!,
-            'resourceType': selectedTypeofDocument,
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
 
-      await _ensureUniversityHasLocation();
+      // 🔥 CASE 1: USER ne NEW FILE select ki hai
+      if (selectedFile != null) {
+        final result = await NoteUploadService.uploadNote(
+          file: selectedFile!,
+          title: titleCtrl.text.trim(),
+          university: normalize(academic.university!),
+          location: normalize(academic.location!),
+          department: normalize(academic.department!),
+          subject: normalize(academic.subject!),
+          semester: academic.semester!,
+          resourceType: selectedTypeofDocument!,
+          fileId: "",
+          noteId: widget.noteId,
+        );
 
-      setState(() => isUploading = false);
+        setState(() => isUploading = false); // 🔥 ALWAYS STOP LOADER
 
-      if (!mounted) return;
+        if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Colors.green,
-          content: Text('Note uploaded successfully'),
-        ),
-      );
-      Navigator.pop(context);
+        if (result['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Note updated successfully"),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          Navigator.pop(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Update failed"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+
+      //  CASE 2: sirf text update
+      else {
+        await FirebaseFirestore.instance
+            .collection('notes')
+            .doc(widget.noteId)
+            .update({
+          'title': titleCtrl.text.trim(),
+          'description': descCtrl.text.trim(),
+          'subject': academic.subject,
+          'university': academic.university,
+          'location': academic.location,
+          'department': academic.department,
+          'semester': academic.semester!,
+          'resourceType': selectedTypeofDocument,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
     }
     /// 🔥 NEW NOTE
     else {
       final fileId = await NoteUploadService.generateFileHash(selectedFile!);
 
-      final existing = await FirebaseFirestore.instance
-          .collection('notes')
-          .where('fileId', isEqualTo: fileId)
-          .where('subject', isEqualTo: normalize(academic.subject!))
-          .where('department', isEqualTo: normalize(academic.department!))
-          .get();
 
-      if (existing.docs.isNotEmpty) {
-        setState(() => isUploading = false);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              "File already uploaded",
-              style: TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
-      final success = await NoteUploadService.uploadNote(
+      final result = await NoteUploadService.uploadNote(
         file: selectedFile!,
         title: titleCtrl.text.trim(),
         university: normalize(academic.university!),
@@ -190,21 +196,36 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
 
       if (!mounted) return;
 
-      if (success) {
+      if (result['duplicate'] == true) {
+        setState(() => isUploading = false);
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'Note uploaded in Draft and pending for Admin-Review',
-              style: TextStyle(color: Colors.white),
-            ),
+            content: Text("File already exists"),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
+      else if (result['success'] == true) {
+        setState(() => isUploading = false);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Note uploaded in Draft and pending for Admin-Review"),
             backgroundColor: Colors.green,
           ),
         );
+
         Navigator.pop(context);
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Upload failed')));
+      }
+      else {
+        setState(() => isUploading = false);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Upload failed")),
+        );
       }
     }
   }
@@ -278,7 +299,9 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
                 _card(
                   title: 'Document Type',
                   child: DropdownButtonFormField<String>(
-                    value: selectedTypeofDocument,
+                    value: typeofDocument.contains(selectedTypeofDocument)
+                        ? selectedTypeofDocument
+                        : null,
                     decoration: const InputDecoration(labelText: 'Select Type'),
                     items: typeofDocument
                         .map((e) => DropdownMenuItem(value: e, child: Text(e)))

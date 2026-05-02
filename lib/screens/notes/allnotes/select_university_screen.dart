@@ -20,7 +20,7 @@ class SelectUniversityScreen extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('universities')
-            .orderBy('createdAt')
+            .orderBy('name')
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {

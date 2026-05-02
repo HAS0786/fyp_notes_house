@@ -28,6 +28,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
 
   String? pickedFilePath;
   String? sessionId;
+  String? activeFilePath;
 
   bool isLoading = false;
 
@@ -39,8 +40,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
     super.initState();
 
     if (widget.pdfPath != null) {
-      pickedFilePath = widget.pdfPath;
-
+      activeFilePath = widget.pdfPath; // 🔥 set here (NOT pickedFilePath)
       messages.add({
         "text": "📎 ${widget.pdfTitle ?? "PDF attached"}",
         "isUser": true,
@@ -60,7 +60,31 @@ class _AIChatScreenState extends State<AIChatScreen> {
     return await FirebaseAuth.instance.currentUser?.getIdToken();
   }
 
-  Future<void> createSession() async {
+  // Future<void> createSession() async {
+  //   final token = await getToken();
+  //
+  //   final res = await http.post(
+  //     Uri.parse("$baseUrl/create-chat-session"),
+  //     headers: {"Authorization": "Bearer $token"},
+  //   );
+  //
+  //   if (res.statusCode != 200) {
+  //     setState(() {
+  //       messages.add({
+  //         "text": "AI error. Try again.",
+  //         "isUser": false,
+  //         "isTyped": true,
+  //       });
+  //       isLoading = false;
+  //     });
+  //     return;
+  //   }
+  //
+  //   final data = jsonDecode(res.body);
+  //   sessionId = data["sessionId"];
+  // }
+
+  Future<String?> createSession() async {
     final token = await getToken();
 
     final res = await http.post(
@@ -68,20 +92,10 @@ class _AIChatScreenState extends State<AIChatScreen> {
       headers: {"Authorization": "Bearer $token"},
     );
 
-    if (res.statusCode != 200) {
-      setState(() {
-        messages.add({
-          "text": "AI error. Try again.",
-          "isUser": false,
-          "isTyped": true,
-        });
-        isLoading = false;
-      });
-      return;
-    }
+    if (res.statusCode != 200) return null;
 
     final data = jsonDecode(res.body);
-    sessionId = data["sessionId"];
+    return data["sessionId"];
   }
 
   Future<void> loadChatHistory() async {
@@ -116,7 +130,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
   }
 
   Future<void> sendMessage() async {
-    if (_controller.text.trim().isEmpty) return;
+    if (_controller.text.trim().isEmpty || isLoading) return;
 
     final question = _controller.text.trim();
     _controller.clear();
@@ -134,21 +148,27 @@ class _AIChatScreenState extends State<AIChatScreen> {
     request.fields["question"] = question;
 
     if (sessionId == null) {
-      await createSession();
+      sessionId = await createSession();
     }
 
-    if (sessionId != null) {
-      request.fields["sessionId"] = sessionId!;
+    if (sessionId == null) {
+      setState(() {
+        messages.add({
+          "text": "Session error. Try again.",
+          "isUser": false,
+          "isTyped": true,
+        });
+        isLoading = false;
+      });
+      return;
     }
 
-    final filePathToUse = pickedFilePath ?? widget.pdfPath;
-
-    if (filePathToUse != null) {
-      print("SENDING FILE: $filePathToUse");
-
+    request.fields["sessionId"] = sessionId!;
+    if (activeFilePath != null) {
       request.files.add(
-        await http.MultipartFile.fromPath("file", filePathToUse),
+        await http.MultipartFile.fromPath("file", activeFilePath!),
       );
+      activeFilePath = null; // 🔥 send only once
     }
 
     final response = await request.send();
@@ -188,7 +208,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
     final result = await FilePicker.platform.pickFiles();
 
     if (result != null) {
-      pickedFilePath = result.files.single.path;
+      activeFilePath = result.files.single.path; // use activeFilePath
 
       setState(() {
         messages.add({
@@ -199,6 +219,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
       });
     }
   }
+
   Future<List> loadDrawerSessions() async {
     final token = await getToken();
 
@@ -219,10 +240,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
         title: Text("AI Assistant"),
       ),
 
-
-    drawer: Drawer(
-    child: ChatSessionsDrawer(),
-    ),
+      drawer: Drawer(child: ChatSessionsDrawer()),
       body: Column(
         children: [
           Expanded(
@@ -239,8 +257,8 @@ class _AIChatScreenState extends State<AIChatScreen> {
 
           ChatInputBar(
             controller: _controller,
-            onSend: sendMessage,
-            onAttach: pickFile, // 🔥 IMPORTANT
+            onSend: isLoading ? null : () => sendMessage(),
+            onAttach: pickFile, //  IMPORTANT
           ),
         ],
       ),

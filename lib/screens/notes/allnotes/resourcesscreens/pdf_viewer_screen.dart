@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart';
 import 'package:fyp_ui_design/screens/aichatbot/ai_chat_screen.dart';
+import 'package:fyp_ui_design/config.dart';
 
 class FileViewerScreen extends StatefulWidget {
   final String title;
@@ -24,6 +24,7 @@ class FileViewerScreen extends StatefulWidget {
 class _FileViewerScreenState extends State<FileViewerScreen> {
   String? localPath;
   bool loading = true;
+  bool isUploaded = false;
 
   final PdfViewerController _pdfController = PdfViewerController();
 
@@ -52,7 +53,7 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
       final response = await http.get(Uri.parse(widget.fileUrl));
 
       final dir = await getTemporaryDirectory();
-      final file = File('${dir.path}/${widget.title}');
+      final file = File('${dir.path}/${widget.title}.pdf');
 
       await file.writeAsBytes(response.bodyBytes);
 
@@ -128,27 +129,32 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
           : _buildViewer(),
 
       // 🤖 AI Button
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.lightBlue,
-        icon: const Icon(Icons.smart_toy),
-        label: const Text('Ask AI'),
-          onPressed: () {
-            if (localPath == null) {
-              _showMessage("File still loading...");
-              return;
-            }
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 🤖 Ask AI
+          FloatingActionButton.extended(
+            heroTag: "ai",
+            backgroundColor: Colors.lightBlue,
+            icon: const Icon(Icons.smart_toy),
+            label: const Text('Ask AI'),
+            onPressed: () {
+              if (localPath == null) return;
 
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AIChatScreen(
-                  pdfPath: localPath!,
-                  pdfTitle: widget.title,
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AIChatScreen(
+                    pdfPath: localPath!,
+                    pdfTitle: widget.title,
+                  ),
                 ),
-              ),
-            );
-          }
+              );
+            },
+          ),
+        ],
       ),
+
     );
   }
 }

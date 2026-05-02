@@ -357,6 +357,7 @@ class _TeacherDraftScreenState extends State<TeacherDraftScreen>
                           ),
                         ),
                       );
+                      fetchNotes();
                     },
                   ),
 

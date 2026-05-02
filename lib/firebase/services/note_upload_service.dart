@@ -4,9 +4,13 @@ import 'package:path/path.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
+import 'dart:convert';
+
 
 class NoteUploadService {
+
   static const String baseUrl = "http://192.168.100.13:3000";
+
   // static const String baseUrl = "http://10.99.151.209:3000";
 
   static Future<String> generateFileHash(File file) async {
@@ -24,7 +28,7 @@ class NoteUploadService {
     return snap.data()?['name'] ?? 'Unknown Teacher';
   }
 
-  static Future<bool> uploadNote({
+  static Future<dynamic> uploadNote({
     required File file,
     required String title,
     required String university,
@@ -33,11 +37,11 @@ class NoteUploadService {
     required int semester,
     required String resourceType,
     required String subject,
-    required String fileId,
+    required String fileId, String? noteId,
   }) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return false;
+      if (user == null) return {"success": false};
 
       final teacherId = user.uid;
       final teacherName = await _getTeacherName(teacherId);
@@ -73,6 +77,7 @@ class NoteUploadService {
         "subject": subject.trim(),
         "teacherName": teacherName,
         "fileId": fileId,
+        if (noteId != null) "noteId": noteId,
       });
 
       // 🚀 SEND REQUEST
@@ -83,10 +88,13 @@ class NoteUploadService {
       print("STATUS: ${response.statusCode}");
       print("RESPONSE: $responseBody");
 
-      return response.statusCode == 200;
+      // return response.statusCode == 200;
+      final data = jsonDecode(responseBody);
+
+      return data;
     } catch (e) {
       print("Note upload error: $e");
-      return false;
+      return {"success": false};
     }
   }
 }

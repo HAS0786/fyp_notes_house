@@ -12,11 +12,6 @@ import 'package:path/path.dart' as p;
 
 class AIQuizUploadScreen extends StatefulWidget {
   final bool isTeacher;
-
-  // static _AIQuizUploadScreenState? _instance;
-  // static void submit() {
-  //   _instance?._saveQuiz();
-  // }
   const AIQuizUploadScreen({super.key, required this.isTeacher});
 
   @override
@@ -142,6 +137,7 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
 
         if (updatedQuiz != null && updatedQuiz is List) {
           generatedQuiz = updatedQuiz;
+          await _saveQuiz();
         }
       } else {
         // 🟢 STUDENT FLOW (DIRECT QUIZ)
@@ -180,6 +176,7 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
 
 
   Future<void> _saveQuiz() async {
+    if (!widget.isTeacher) return;
     if (academic.university == null ||
         academic.department == null ||
         academic.semester == null ||
@@ -396,11 +393,13 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                   loading
                       ? const CircularProgressIndicator()
                       :ElevatedButton(
-                    onPressed: (academic.university == null ||
+                    onPressed: widget.isTeacher
+                        ? (academic.university == null ||
                         academic.department == null ||
                         academic.semester == null ||
                         academic.subject == null)
                         ? null
+                        : generateQuiz
                         : generateQuiz,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
@@ -415,76 +414,6 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.white),
                     ),
                   ),
-                  if (generatedQuiz.isNotEmpty && widget.isTeacher) ...[
-                    const SizedBox(height: 20),
-
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        if (widget.isTeacher) {
-                          // 🔵 TEACHER FLOW (same as before)
-                          final updatedQuiz = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => AIQuizEditScreen(
-                                quiz: generatedQuiz,
-                                university: academic.university,
-                                department: academic.department,
-                                semester: academic.semester,
-                                subject: academic.subject,
-                              ),
-                            ),
-                          );
-
-                          if (updatedQuiz != null && updatedQuiz is List) {
-                            generatedQuiz = updatedQuiz;
-                          }
-                        }
-                        else {
-                          // 🟢 STUDENT FLOW (NEW)
-
-                          String fileName = p.basename(selectedFile!.path);
-
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => QuizScreen(
-                                quizId: null,
-                                quizData: List.from(generatedQuiz),
-                                isEditable: false,
-
-                                // 🔥 AI info
-                                subject: "AI Quiz",
-                                department: fileName,
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      icon: Icon(Icons.edit),
-                      label: Text("Edit Generated Quiz"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade200,
-                        foregroundColor: Colors.black87,
-                        elevation: 0,
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: _saveQuiz,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
-                      ),
-                      child: const Text(
-                        "Submit Quiz",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ]
                 ],
               ),
             ),

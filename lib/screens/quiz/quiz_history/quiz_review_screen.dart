@@ -33,65 +33,32 @@ class QuizReviewScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-
-          Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: const [
-                BoxShadow(color: Colors.black12, blurRadius: 5),
-              ],
-            ),
-
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children:[
-
-              Text(
-              subject ?? "Quiz",
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+          if (weakTopics.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: weakTopics.entries.map((e) {
+                  return Chip(
+                    label: Text("${e.key} (${e.value})"),
+                    backgroundColor: Colors.orange.shade100,
+                  );
+                }).toList(),
               ),
             ),
-
-        const SizedBox(height: 6),
-
-        if (isAI) ...[
-    // 🤖 AI MODE → FILE NAME ONLY
-    Text(
-    department ?? "File",
-    style: TextStyle(color: Colors.grey.shade700),
-    ),
-    ] else ...[
-    // 👨‍🏫 TEACHER MODE → FULL INFO
-
-    if (department != null && semester != null)
-    Text(
-    "$department • Semester $semester",
-    style: TextStyle(color: Colors.grey.shade700),
-    ),
-
-    if (university != null || campus != null)
-    Text(
-    "${university ?? ''} ${campus != null ? '• $campus' : ''}",
-    style: TextStyle(
-    fontSize: 12,
-    color: Colors.grey.shade500,
-    ),
-    ),
-    ],
-              ],
-            ),
-          ),
           Expanded(
             child: ListView.builder(
               itemCount: questions.length,
               itemBuilder: (context, i) {
                 final q = questions[i];
-                final correct = int.tryParse(q['correct']?.toString() ?? '') ?? 0;
+                final correct =
+                    int.tryParse(q['correct']?.toString() ?? '') ?? 0;
 
                 final selected = selectedAnswers[i.toString()];
 
@@ -99,9 +66,11 @@ class QuizReviewScreen extends StatelessWidget {
 
                 return Column(
                   children: [
-
                     Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 12,
+                      ),
                       color: isCorrect ? Colors.green[50] : Colors.red[50],
                       child: Padding(
                         padding: const EdgeInsets.all(12),
@@ -109,22 +78,21 @@ class QuizReviewScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Weak Areas:",
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              "Question ${i + 1}",
+                              style: TextStyle(
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
 
-                            Wrap(
-                              children: weakTopics.entries.map((e) {
-                                return Chip(
-                                  label: Text("${e.key} (${e.value})"),
-                                  backgroundColor: Colors.red.shade100,
-                                );
-                              }).toList(),
-                            ),
+                            const SizedBox(height: 4),
 
                             Text(
-                              "Q${i + 1}: ${q['question']}",
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              q['question'],
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
 
                             const SizedBox(height: 10),
@@ -132,24 +100,44 @@ class QuizReviewScreen extends StatelessWidget {
                             ...List.generate(q['options'].length, (index) {
                               final option = q['options'][index];
 
-                              Color color = Colors.grey.shade200;
+                              bool isCorrectOption = index == correct;
+                              bool isSelected = selected == index;
 
-                              if (index == correct) {
-                                color = Colors.green.shade200;
+                              Color bg = Colors.grey.shade100;
+                              Color border = Colors.transparent;
+
+                              if (isCorrectOption) {
+                                bg = Colors.green.shade50;
+                                border = Colors.green;
                               }
 
-                              if (selected == index && selected != correct) {
-                                color = Colors.red.shade200;
+                              if (isSelected && !isCorrectOption) {
+                                bg = Colors.red.shade50;
+                                border = Colors.red;
                               }
 
                               return Container(
-                                margin: const EdgeInsets.symmetric(vertical: 4),
-                                padding: const EdgeInsets.all(10),
+                                margin: const EdgeInsets.symmetric(vertical: 6),
+                                padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: color,
-                                  borderRadius: BorderRadius.circular(8),
+                                  color: bg,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: border),
                                 ),
-                                child: Text(option),
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 12,
+                                      backgroundColor: Colors.grey.shade300,
+                                      child: Text(
+                                        String.fromCharCode(65 + index),
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(child: Text(option)),
+                                  ],
+                                ),
                               );
                             }),
 
@@ -172,7 +160,7 @@ class QuizReviewScreen extends StatelessWidget {
             ),
           ),
         ],
-      )
+      ),
     );
   }
 }

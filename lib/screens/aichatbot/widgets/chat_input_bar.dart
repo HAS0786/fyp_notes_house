@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class ChatInputBar extends StatelessWidget {
   final TextEditingController controller;
-  final VoidCallback onSend;
+  final VoidCallback? onSend;
   final VoidCallback onAttach;
 
   const ChatInputBar({

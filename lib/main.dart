@@ -12,12 +12,38 @@ import 'package:fyp_ui_design/screens/login_signup/login_screen.dart';
 import 'package:fyp_ui_design/screens/login_signup/sign_up/signup_screen.dart';
 import 'package:fyp_ui_design/screens/quiz/quiz_upload/create_mcq_screen.dart';
 import 'package:fyp_ui_design/screens/roles_selection/chose_role_screen.dart';
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   await LocalNotificationService.initialize();
   await LocalNotificationService.show(message);
+}
+void setupNotificationClickHandler() {
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    final data = message.data;
+
+    if (data['type'] == 'new_quiz') {
+      navigatorKey.currentState?.pushNamed('/dashboard');
+    }
+
+    if (data['type'] == 'approved_note') {
+      navigatorKey.currentState?.pushNamed('/dashboard');
+    }
+  });
+
+  // App closed case
+  FirebaseMessaging.instance.getInitialMessage().then((message) {
+    if (message != null) {
+      final data = message.data;
+
+      if (data['type'] == 'new_quiz') {
+        navigatorKey.currentState?.pushNamed('/dashboard');
+      }
+    }
+  });
 }
 
 void main() async {
@@ -41,7 +67,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    setupNotificationClickHandler();
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Notes House',
 

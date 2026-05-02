@@ -241,7 +241,9 @@ class _AcademicInfoFormState extends State<AcademicInfoForm> {
               children: [
                 Expanded(
                   child: DropdownButtonFormField(
-                    value: data.university,
+                    value: snap.data!.contains(data.university)
+                        ? data.university
+                        : null,
                     items: snap.data!
                         .map((e) =>
                         DropdownMenuItem(value: e, child: Text(e)))
@@ -313,7 +315,9 @@ class _AcademicInfoFormState extends State<AcademicInfoForm> {
               children: [
                 Expanded(
                   child: DropdownButtonFormField(
-                    value: data.department,
+                    value: snap.data!.contains(data.department)
+                        ? data.department
+                        : null,
                     items: snap.data!
                         .map((e) =>
                         DropdownMenuItem(value: e, child: Text(e)))
@@ -346,7 +350,9 @@ class _AcademicInfoFormState extends State<AcademicInfoForm> {
               children: [
                 Expanded(
                   child: DropdownButtonFormField(
-                    value: data.subject,
+                    value: snap.data!.contains(data.subject)
+                        ? data.subject
+                        : null,
                     items: snap.data!
                         .map((e) =>
                         DropdownMenuItem(value: e, child: Text(e)))
