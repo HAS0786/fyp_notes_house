@@ -102,7 +102,7 @@ class QuizListScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (_) => QuizScreen(
-                              quizId: quizzes[i].id, // 🔥 important
+                              quizId: quizzes[i].id,
                               quizData: questions,
                               isEditable: false,
                               subject: quiz['subject'],

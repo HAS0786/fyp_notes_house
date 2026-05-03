@@ -1,3 +1,4 @@
+import 'dart:convert';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -6,14 +7,17 @@ import 'package:fyp_ui_design/firebase/services/local_notification_service.dart'
 import 'package:fyp_ui_design/firebase_options.dart';
 import 'package:fyp_ui_design/screens/admin/admin_dashboard_screen.dart';
 import 'package:fyp_ui_design/screens/admin/admin_login_screen.dart';
+import 'package:fyp_ui_design/screens/notes/allnotes/resourcesscreens/pdf_viewer_screen.dart';
+import 'package:fyp_ui_design/screens/notes/allnotes/resourcesscreens/resource_list_screen.dart';
+import 'package:fyp_ui_design/screens/quiz/quiz_screen.dart';
 import 'package:fyp_ui_design/screens/splashscreen/splash_screen.dart';
 import 'package:fyp_ui_design/screens/dashboard/home_screen.dart';
 import 'package:fyp_ui_design/screens/login_signup/login_screen.dart';
 import 'package:fyp_ui_design/screens/login_signup/sign_up/signup_screen.dart';
 import 'package:fyp_ui_design/screens/quiz/quiz_upload/create_mcq_screen.dart';
 import 'package:fyp_ui_design/screens/roles_selection/chose_role_screen.dart';
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -21,31 +25,43 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await LocalNotificationService.initialize();
   await LocalNotificationService.show(message);
 }
-void setupNotificationClickHandler() {
-  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    final data = message.data;
 
-    if (data['type'] == 'new_quiz') {
-      navigatorKey.currentState?.pushNamed('/dashboard');
+void handleNotificationClick(RemoteMessage message) {
+  final data = message.data;
+
+  // 🔥 delay so navigator ready ho
+  Future.delayed(const Duration(milliseconds: 500), () {
+
+    if (data['type'] == 'new_quiz' && data['quizId'] != null) {
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (_) => QuizScreen(
+            quizId: data['quizId'],
+            quizData: [],
+            isEditable: false,
+            subject: '',
+            department: '',
+            semester: 0,
+            university: '',
+            campus: '',
+          ),
+        ),
+      );
     }
 
-    if (data['type'] == 'approved_note') {
-      navigatorKey.currentState?.pushNamed('/dashboard');
+    if (data['type'] == 'approved_note' && data['fileUrl'] != null) {
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (_) => FileViewerScreen(
+            fileUrl: data['fileUrl'],
+            title: data['title'] ?? "Note",
+          ),
+        ),
+      );
     }
-  });
 
-  // App closed case
-  FirebaseMessaging.instance.getInitialMessage().then((message) {
-    if (message != null) {
-      final data = message.data;
-
-      if (data['type'] == 'new_quiz') {
-        navigatorKey.currentState?.pushNamed('/dashboard');
-      }
-    }
   });
 }
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -59,6 +75,18 @@ void main() async {
     firebaseMessagingBackgroundHandler,
   );
 
+  // 🔥 ADD HERE
+  FirebaseMessaging.onMessageOpenedApp.listen((message) {
+    handleNotificationClick(message);
+  });
+
+  FirebaseMessaging.instance.getInitialMessage().then((message) {
+    if (message != null) {
+      handleNotificationClick(message);
+    }
+  });
+
+
   runApp(const MyApp());
 }
 
@@ -67,7 +95,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    setupNotificationClickHandler();
     return MaterialApp(
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,

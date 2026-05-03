@@ -17,7 +17,6 @@ class NotesScreen extends StatelessWidget {
     {'title': 'Books', 'icon': Icons.book, 'color': Colors.blue},
     {'title': 'Notes', 'icon': Icons.note, 'color': Colors.green},
     {'title': 'Past Papers', 'icon': Icons.history, 'color': Colors.orange},
-    // {'title': 'Quizzes', 'icon': Icons.quiz_outlined, 'color': Colors.red},
     {'title': 'Assignments', 'icon': Icons.assignment, 'color': Colors.purple},
     {'title': 'Lab Manuals', 'icon': Icons.science, 'color': Colors.teal},
     {'title': 'Projects', 'icon': Icons.folder_open, 'color': Colors.indigo},

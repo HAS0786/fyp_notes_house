@@ -1,14 +1,16 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'about_us_screen.dart';
 import 'change_password_screen.dart';
 import 'contact_us_screen.dart';
 import 'edit_profile_screen.dart';
 import '../roles_selection/chose_role_screen.dart';
+import 'package:http/http.dart' as http;
+
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -40,9 +42,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _university = prefs.getString('user_uni') ?? '';
       _imagePath = prefs.getString('profile_image');
       _email = FirebaseAuth.instance.currentUser?.email ?? '';
+      _notificationsOn = prefs.getBool('notifications_on') ?? true;
     });
   }
 
+  Future<void> updateNotificationStatus(bool isOn) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final token = await user.getIdToken();
+
+    final response = await http.post(
+      Uri.parse("http://192.168.100.13:3000/update-notification"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({
+        "notificationsEnabled": isOn,
+      }),
+    );
+
+    print("STATUS UPDATE RESPONSE: ${response.body}");
+  }
   /// PICK PROFILE IMAGE
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -101,18 +123,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       : const AssetImage('assets/images/user.png')
                   as ImageProvider,
                 ),
-                // Positioned(
-                //   bottom: 0,
-                //   right: 0,
-                //   child: InkWell(
-                //     // onTap: _pickImage,
-                //     child: const CircleAvatar(
-                //       radius: 18,
-                //       // backgroundColor: Colors.lightBlue,
-                //       // child: Icon(Icons.edit, size: 18, color: Colors.white),
-                //     ),
-                //   ),
-                // ),
               ],
             ),
 
@@ -147,16 +157,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
               );
             }),
 
-            // // Notifications
-            // ListTile(
-            //   leading: const Icon(Icons.notifications),
-            //   title: const Text('Notifications'),
-            //   trailing: Switch(
-            //     value: _notificationsOn,
-            //     onChanged: (v) => setState(() => _notificationsOn = v),
-            //   ),
-            // ),
+            Card(
+              elevation: 1,
+              margin: const EdgeInsets.symmetric(vertical: 6),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.lightBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.notifications,
+                    color: Colors.lightBlue,
+                    size: 28,
+                  ),
+                ),
 
+                title: const Text('Notifications'),
+
+                // 🔥 YAHAN ARROW KI JAGAH SWITCH
+                trailing: Switch(
+                  value: _notificationsOn,
+                  // hoverColor: Colors.lightBlue,
+                  activeThumbColor: Colors.lightBlue,
+                  onChanged: (v) async {
+                    setState(() => _notificationsOn = v);
+
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('notifications_on', v);
+
+                    await updateNotificationStatus(v);
+                  },
+                ),
+              ),
+            ),
             _tile(Icons.info, 'About Us', () {
               Navigator.push(
                 context,

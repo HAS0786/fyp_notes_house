@@ -8,8 +8,6 @@ import 'package:fyp_ui_design/firebase/services/auth_role_service.dart';
 import 'package:fyp_ui_design/firebase/services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
-
 class LoginScreen extends StatefulWidget {
   final bool isTeacher;
   const LoginScreen({super.key, required this.isTeacher});
@@ -30,16 +28,13 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
-      final credential =
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailCtrl.text.trim(),
         password: _passCtrl.text.trim(),
       );
 
       // Sync role only (no navigation decision here)
-      await AuthRoleService.syncUserToLocal(
-        user: credential.user!,
-      );
+      await AuthRoleService.syncUserToLocal(user: credential.user!);
 
       await NotificationService.saveToken(); // Notification
       // Let AuthWrapper react automatically
@@ -47,16 +42,16 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const AuthWrapper()),
-            (route) => false,
+        (route) => false,
       );
       setState(() => _isLoading = false);
-
-
-    }on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException catch (e) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message ?? 'Login failed')));
-    }}
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message ?? 'Login failed')));
+    }
+  }
 
   /// Email validation
   String? _validateEmail(String? value) {
@@ -85,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isTeacher ? 'Teacher Login' : 'Student Login'),
-        backgroundColor:  Colors.lightBlue,
+        backgroundColor: Colors.lightBlue,
         foregroundColor: Colors.white,
         centerTitle: true,
       ),
@@ -123,11 +118,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: _inputDecoration( widget.isTeacher ? 'University Email' : 'Email',
-                    widget.isTeacher
-                        ? 'name@pu.edu.pk'
-                        : 'ali@gmail.com',
-                    Icons.email,),
+                  decoration: _inputDecoration(
+                    widget.isTeacher ? 'University Email' : 'Email',
+                    widget.isTeacher ? 'name@pu.edu.pk' : 'ali@gmail.com',
+                    Icons.email,
+                  ),
                   validator: _validateEmail,
                 ),
                 const SizedBox(height: 16),
@@ -139,9 +134,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: _passwordDecoration(
                     'Password',
                     _obscurePassword,
-                        () => setState(() {
+                    () => setState(() {
                       _obscurePassword = !_obscurePassword;
-                    }),),
+                    }),
+                  ),
                   validator: _validatePassword,
                 ),
                 const SizedBox(height: 24),
@@ -159,13 +155,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: _isLoading
                       ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
                       : const Text('Log In'),
                 ),
                 const SizedBox(height: 16),
@@ -177,29 +173,50 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: kIsWeb
                         ? null
                         : () async {
-                      final user = await GoogleAuthService.signInWithGoogleSafe(
-                        context: context,
-                      );
+                      setState(() => _isLoading = true);
+                      final user =
+                                await GoogleAuthService.signInWithGoogleSafe(
+                                  context: context,
+                                );
 
-                      if (user == null) return;
+                      if (user == null) {
+                        setState(() => _isLoading = false); // ❗ missing before
+                        return;
+                      }
 
-                      // ⭐ IMPORTANT FIX
-                      await AuthRoleService.syncUserToLocal(user: user);
+                            final doc = await FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(user.uid)
+                                .get();
 
+                            // 🔥 NEW USER → create document
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(user.uid)
+                          .set({
+                        'name': user.displayName ?? '',
+                        'email': user.email ?? '',
+                        'role': 'student',
+                        'status': 'approved',
+                        'createdAt': FieldValue.serverTimestamp(),
+                        'notificationsEnabled': true, // 🔥 ALWAYS ADD
+                      }, SetOptions(merge: true));
+                      await NotificationService.saveToken();
+                            // sync role
+                            await AuthRoleService.syncUserToLocal(user: user);
+                      setState(() => _isLoading = false);
                       Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => const AuthWrapper()),
-                      );
-
-                    },
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AuthWrapper(),
+                              ),
+                            );
+                          },
                     icon: Image.asset('assets/images/google.png', height: 20),
                     label: const Text('Continue with Google'),
                   ),
 
-
-
                 const SizedBox(height: 16),
-
 
                 /// SIGNUP
                 Row(
@@ -227,8 +244,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   /// REUSABLE DECORATIONS
-  InputDecoration _inputDecoration(
-      String label, String hint, IconData icon) {
+  InputDecoration _inputDecoration(String label, String hint, IconData icon) {
     return InputDecoration(
       prefixIcon: Icon(icon, color: Colors.lightBlue),
       labelText: label,
@@ -257,14 +273,19 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-
   InputDecoration _passwordDecoration(
-      String label, bool obscure, VoidCallback toggle) {
+    String label,
+    bool obscure,
+    VoidCallback toggle,
+  ) {
     return InputDecoration(
       hintText: "********",
       prefixIcon: const Icon(Icons.lock, color: Colors.lightBlue),
       suffixIcon: IconButton(
-        icon: Icon(obscure ? Icons.visibility_off : Icons.visibility,color: Colors.lightBlue,),
+        icon: Icon(
+          obscure ? Icons.visibility_off : Icons.visibility,
+          color: Colors.lightBlue,
+        ),
         onPressed: toggle,
       ),
       labelText: label,
@@ -289,8 +310,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-
-
 
   @override
   void dispose() {

@@ -49,6 +49,22 @@ class _QuizScreenState extends State<QuizScreen> {
   void initState() {
     super.initState();
 
+    if (widget.quizData.isEmpty && widget.quizId != null) {
+      FirebaseFirestore.instance
+          .collection('quizzes')
+          .doc(widget.quizId)
+          .get()
+          .then((doc) {
+        final data = doc.data();
+        if (data != null) {
+          setState(() {
+            questions = data['questions'];
+          });
+        }
+      });
+    } else {
+      questions = widget.quizData;
+    }
     if (widget.quizId == null) {
       // AI quiz
       questions = widget.quizData;

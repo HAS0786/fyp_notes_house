@@ -27,10 +27,13 @@ class LocalNotificationService {
   }
 
   static Future<void> show(RemoteMessage message) async {
+    final title = message.notification?.title ?? "Notification";
+    final body = message.notification?.body ?? "";
+
     await _plugin.show(
       DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      message.data['title'],
-      message.data['body'],
+      title,
+      body,
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'high_importance_channel',
