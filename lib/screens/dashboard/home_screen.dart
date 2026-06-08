@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:fyp_ui_design/config.dart';
 import 'package:fyp_ui_design/firebase/services/local_notification_service.dart';
 import 'package:fyp_ui_design/firebase/services/notification_service.dart';
 import 'package:fyp_ui_design/screens/dashboard/searchbar.dart';
@@ -201,8 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final token = await user.getIdToken();
 
     final response = await http.post(
-      Uri.parse("http://192.168.100.13:3000/retry-teacher"),
-      // Uri.parse("http://10.99.151.209:3000/retry-teacher"),
+      Uri.parse("$baseUrl/retry-teacher"),
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",

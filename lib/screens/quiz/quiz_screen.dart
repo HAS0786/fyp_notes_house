@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fyp_ui_design/config.dart';
 import 'package:fyp_ui_design/screens/quiz/result_performance/quiz_result_screen.dart.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
@@ -93,10 +94,7 @@ class _QuizScreenState extends State<QuizScreen> {
   // 🔥 API (only for teacher quizzes)
   Future<Map<String, dynamic>?> fetchQuizFromAPI() async {
     try {
-      final url = Uri.parse(
-        "http://192.168.100.13:3000/get-quiz/${widget.quizId}",
-        // "http://10.99.151.209:3000/get-quiz/${widget.quizId}",
-      );
+      final url =Uri.parse("$baseUrl/get-quiz/${widget.quizId}");
 
       final response = await http.get(url);
 

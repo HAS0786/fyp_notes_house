@@ -1,10 +1,8 @@
 import 'dart:convert';
+import 'package:fyp_ui_design/config.dart';
 import 'package:http/http.dart' as http;
 
 class QuizFetchService {
-  static const String baseUrl = "http://192.168.100.13:3000";
-  // static const String baseUrl = "http://10.99.151.209:3000";
-
   static Future<List<Map<String, dynamic>>> getQuizzes({
     required String university,
     required String department,

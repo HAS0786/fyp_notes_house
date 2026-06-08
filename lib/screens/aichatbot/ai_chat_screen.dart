@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fyp_ui_design/config.dart';
 import 'package:fyp_ui_design/screens/aichatbot/widgets/chat_loading_avatar.dart';
 import 'package:fyp_ui_design/screens/aichatbot/widgets/chat_empty_state.dart';
 import 'package:fyp_ui_design/screens/aichatbot/widgets/chat_input_bar.dart';
@@ -31,9 +32,6 @@ class _AIChatScreenState extends State<AIChatScreen> {
   String? activeFilePath;
 
   bool isLoading = false;
-
-  final String baseUrl = "http://192.168.100.13:3000";
-  // final String baseUrl = "http://10.99.151.209:3000";
 
   @override
   void initState() {

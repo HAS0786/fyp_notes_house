@@ -2,11 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fyp_ui_design/config.dart';
+
 
 class QuizService {
-  static const String
-  _baseUrl = "http://192.168.100.13:3000";
-  // _baseUrl = "http://10.99.151.209:3000";
 
   static Future<bool> createQuiz({
     required String university,
@@ -32,7 +31,7 @@ class QuizService {
           snap.data()?['name'] ?? 'Unknown Teacher';
 
       final response = await http.post(
-        Uri.parse("$_baseUrl/upload-quiz"),
+        Uri.parse("$baseUrl/upload-quiz"),
         headers: {"Content-Type": "application/json","Authorization": "Bearer $token",},
         body: jsonEncode({
           "university": university,

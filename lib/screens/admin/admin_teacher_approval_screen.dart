@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fyp_ui_design/config.dart';
 import 'package:http/http.dart' as http;
 
 class AdminTeacherScreen extends StatelessWidget {
@@ -16,8 +17,7 @@ class AdminTeacherScreen extends StatelessWidget {
     final token = await _getToken();
 
     await http.post(
-      Uri.parse("http://192.168.100.13:3000/approve-teacher"),
-      // Uri.parse("http://10.99.151.209:3000/approve-teacher"),
+      Uri.parse("$baseUrl/approve-teacher"),
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",
@@ -30,8 +30,7 @@ class AdminTeacherScreen extends StatelessWidget {
     final token = await _getToken();
 
     await http.post(
-      Uri.parse("http://192.168.100.13:3000/reject-teacher"),
-      // Uri.parse("http://10.99.151.209:3000/reject-teacher"),
+      Uri.parse("$baseUrl/reject-teacher"),
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",

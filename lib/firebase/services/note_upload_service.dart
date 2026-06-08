@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:fyp_ui_design/config.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,12 +9,7 @@ import 'dart:convert';
 
 
 class NoteUploadService {
-
-  static const String baseUrl = "http://192.168.100.13:3000";
-
-  // static const String baseUrl = "http://10.99.151.209:3000";
-
-  static Future<String> generateFileHash(File file) async {
+    static Future<String> generateFileHash(File file) async {
     final bytes = await file.readAsBytes();
     final hash = sha256.convert(bytes);
     return hash.toString();

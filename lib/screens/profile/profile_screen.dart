@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fyp_ui_design/config.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'about_us_screen.dart';
@@ -53,7 +54,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final token = await user.getIdToken();
 
     final response = await http.post(
-      Uri.parse("http://192.168.100.13:3000/update-notification"),
+      Uri.parse("$baseUrl/update-notification"),
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",

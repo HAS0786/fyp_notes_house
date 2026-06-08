@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fyp_ui_design/config.dart';
 import 'package:fyp_ui_design/screens/notes/allnotes/resourcesscreens/pdf_viewer_screen.dart';
 import 'package:fyp_ui_design/screens/notes/allnotes/teacherdraft/quiz_viewer_screen.dart';
 import 'package:fyp_ui_design/screens/notes/uploadnotes/upload_notes_screen.dart';
@@ -20,8 +21,6 @@ class _TeacherDraftScreenState extends State<TeacherDraftScreen>
   List quizzes = [];
   bool isQuizLoading = true;
 
-  final String baseUrl = "http://192.168.100.13:3000";
-  // final String baseUrl = "http://10.99.151.209:3000";
 
   List notes = [];
   bool isLoading = true;

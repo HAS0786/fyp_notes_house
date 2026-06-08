@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:fyp_ui_design/config.dart';
 import 'package:fyp_ui_design/screens/quiz/ai_based_quiz/ai_quiz_edit_screen.dart';
 import 'package:fyp_ui_design/screens/quiz/quiz_screen.dart';
 import 'package:fyp_ui_design/widgets/academic_info_form.dart';
@@ -25,10 +26,6 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
   bool loading = false;
 
   List generatedQuiz = [];
-  final String baseUrl = "http://192.168.100.13:3000";
-  // final String baseUrl = "http://10.99.151.209:3000";
-
-
   //  PICK FILE
   Future<void> _pickFile() async {
     final result = await FilePicker.platform.pickFiles(

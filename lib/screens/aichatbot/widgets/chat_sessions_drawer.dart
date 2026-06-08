@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fyp_ui_design/config.dart';
 import 'package:fyp_ui_design/screens/aichatbot/ai_chat_screen.dart';
 import 'package:http/http.dart' as http;
 
@@ -13,10 +14,6 @@ class ChatSessionsDrawer extends StatefulWidget {
 
 class _ChatSessionsDrawerState extends State<ChatSessionsDrawer> {
   List sessions = [];
-
-  final String baseUrl = "http://192.168.100.13:3000";
-  // final String baseUrl = "http://10.99.151.209:3000";
-
   @override
   void initState() {
     super.initState();

@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:fyp_ui_design/config.dart';
 
 
 class AdminNotesScreen extends StatelessWidget {
@@ -18,8 +19,7 @@ class AdminNotesScreen extends StatelessWidget {
     final token = await _getToken();
 
     await http.post(
-      Uri.parse("http://192.168.100.13:3000/approve-note"),
-      // Uri.parse("http://10.99.151.209:3000/approve-note"),
+      Uri.parse("$baseUrl/approve-note"),
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",
@@ -39,8 +39,8 @@ class AdminNotesScreen extends StatelessWidget {
     final token = await _getToken();
 
     await http.post(
-      Uri.parse("http://192.168.100.13:3000/reject-note"),
-      // Uri.parse("http://10.99.151.209:3000/reject-note"),
+
+      Uri.parse("$baseUrl/reject-note"),
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",
