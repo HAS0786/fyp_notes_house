@@ -358,7 +358,7 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
                   child: GestureDetector(
                     onTap: _pickFile,
                     child: Container(
-                      height: 150,
+                      height: 170,
                       width: double.infinity,
                       decoration: BoxDecoration(
                         color: selectedFile != null
@@ -393,11 +393,10 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
                           Text(
                             selectedFile != null
                                 ? basename(selectedFile!.path)
-                                :  (widget.isEdit
-                                ? getCleanName(widget.noteData?['fileUrl'] ??
-                                            "File already uploaded")
-                                      : "Tap to upload PDF or Image\nMaximum size: 10 MB"),
+                                : 'Tap to upload PDF or Image\nMaximum size: 10 MB',
                             textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: selectedFile != null

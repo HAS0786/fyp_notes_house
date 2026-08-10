@@ -27,6 +27,7 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
   bool isUploaded = false;
 
   final PdfViewerController _pdfController = PdfViewerController();
+  bool _savingAnnotations = false;
 
   @override
   void initState() {
@@ -153,13 +154,41 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
     }
   }
 
+  Future<void> _saveAnnotations() async {
+    if (!widget.isLocal || localPath == null || _savingAnnotations) {
+      return;
+    }
+
+    try {
+      _savingAnnotations = true;
+
+      final List<int> bytes =
+      await _pdfController.saveDocument();
+
+      await File(localPath!).writeAsBytes(
+        bytes,
+        flush: true,
+      );
+
+      print("ANNOTATIONS SAVED: $localPath");
+    } catch (e) {
+      print("ANNOTATION SAVE ERROR: $e");
+    } finally {
+      _savingAnnotations = false;
+    }
+  }
+
+  void _setAnnotationMode(PdfAnnotationMode mode) {
+    _pdfController.annotationMode = mode;
+  }
+
   void _showMessage(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(msg)),
     );
   }
 
-  // 🔥 MAIN VIEWER LOGIC
+  // MAIN VIEWER LOGIC
   Widget _buildViewer() {
     if (localPath == null) {
       return const Center(child: Text("No file available"));
@@ -167,10 +196,22 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
 
     print("OPENING FILE: $localPath");
 
-    // 🔥 FORCE PDF VIEWER (NO CHECK)
+    //  FORCE PDF VIEWER (NO CHECK)
     return SfPdfViewer.file(
       File(localPath!),
       controller: _pdfController,
+
+      onAnnotationAdded: (Annotation annotation) {
+        _saveAnnotations();
+      },
+
+      onAnnotationEdited: (Annotation annotation) {
+        _saveAnnotations();
+      },
+
+      onAnnotationRemoved: (Annotation annotation) {
+        _saveAnnotations();
+      },
     );
   }
   @override
@@ -182,10 +223,135 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
         foregroundColor: Colors.white,
         title: Text(widget.title),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.download),
-            onPressed: _downloadOffline,
-          ),
+          // Download button - only for online files
+          if (!widget.isLocal)
+            IconButton(
+              icon: const Icon(Icons.download),
+              onPressed: _downloadOffline,
+            ),
+
+          // Annotation tools - only for downloaded files
+          if (widget.isLocal)
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.edit,),
+              tooltip: "Annotate",
+              onSelected: (value) {
+                switch (value) {
+                  case 'highlight':
+                    _setAnnotationMode(
+                      PdfAnnotationMode.highlight,
+                    );
+                    break;
+
+                  case 'underline':
+                    _setAnnotationMode(
+                      PdfAnnotationMode.underline,
+                    );
+                    break;
+
+                  case 'strikethrough':
+                    _setAnnotationMode(
+                      PdfAnnotationMode.strikethrough,
+                    );
+                    break;
+
+                  case 'squiggly':
+                    _setAnnotationMode(
+                      PdfAnnotationMode.squiggly,
+                    );
+                    break;
+
+                  case 'sticky':
+                    _setAnnotationMode(
+                      PdfAnnotationMode.stickyNote,
+                    );
+                    break;
+
+                  case 'none':
+                    _setAnnotationMode(
+                      PdfAnnotationMode.none,
+                    );
+                    break;
+                }
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem(
+                  value: 'highlight',
+                  child: Row(
+                    children: [
+                      Icon(Icons.highlight, color: Colors.orange),
+                      SizedBox(width: 10),
+                      Text("Highlight"),
+                    ],
+                  ),
+                ),
+
+                PopupMenuItem(
+                  value: 'underline',
+                  child: Row(
+                    children: [
+                      Icon(Icons.format_underlined, color: Colors.blue),
+                      SizedBox(width: 10),
+                      Text("Underline"),
+                    ],
+                  ),
+                ),
+
+                PopupMenuItem(
+                  value: 'strikethrough',
+                  child: Row(
+                    children: [
+                      Icon(Icons.strikethrough_s, color: Colors.red),
+                      SizedBox(width: 10),
+                      Text("Strikethrough"),
+                    ],
+                  ),
+                ),
+
+                PopupMenuItem(
+                  value: 'squiggly',
+                  child: Row(
+                    children: [
+                      Icon(Icons.text_fields,color: Colors.purple),
+                      SizedBox(width: 10),
+                      Text("Squiggly"),
+                    ],
+                  ),
+                ),
+
+                PopupMenuItem(
+                  value: 'sticky',
+                  child: Row(
+                    children: [
+                      Icon(Icons.note_add,color: Colors.amber),
+                      SizedBox(width: 10),
+                      Text("Sticky Note"),
+                    ],
+                  ),
+                ),
+
+                PopupMenuDivider(),
+
+                PopupMenuItem(
+                  value: 'none',
+                  child: Row(
+                    children: [
+                      Icon(Icons.close, color: Colors.grey),
+                      SizedBox(width: 10),
+                      Text("Stop Annotating"),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+          // Save annotations
+          if (widget.isLocal)
+            IconButton(
+              icon: const Icon(Icons.save),
+              tooltip: "Save annotations",
+              onPressed: _saveAnnotations,
+            ),
         ],
       ),
 

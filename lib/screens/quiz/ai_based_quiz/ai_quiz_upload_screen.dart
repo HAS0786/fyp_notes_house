@@ -62,16 +62,16 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
       });
     }
   }
+
   Stream<List<String>> universitiesStream() {
     return FirebaseFirestore.instance
         .collection('universities')
         .snapshots()
-        .map((s) =>
-        s.docs.map((d) => d['name'].toString()).toSet().toList());
+        .map((s) => s.docs.map((d) => d['name'].toString()).toSet().toList());
   }
 
-  // 🤖 GENERATE QUIZ
-  Future<void> generateQuiz() async {
+  // GENERATE QUIZ
+  Future<void> generateQuiz({bool isRegenerate = false}) async {
     if (selectedFile == null) return;
 
     setState(() => loading = true);
@@ -83,18 +83,21 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
         Uri.parse("$baseUrl/generate-quiz-file"),
       );
       request.headers['Authorization'] = 'Bearer $token';
-      request.files.add(await http.MultipartFile.fromPath("file", selectedFile!.path));
+      request.files.add(
+        await http.MultipartFile.fromPath("file", selectedFile!.path),
+      );
 
       request.fields['subject'] = academic.subject ?? "";
       request.fields['university'] = academic.university ?? "";
       request.fields['department'] = academic.department ?? "";
-      request.fields['semester'] =
-          academic.semester?.toString() ?? "";
+      request.fields['semester'] = academic.semester?.toString() ?? "";
       request.fields['location'] = academic.location ?? "";
-
-      final response = await request.send().timeout(
-        const Duration(minutes: 2),
+      request.fields['regenerate'] = isRegenerate.toString();
+      request.fields['previousQuiz'] = jsonEncode(
+        isRegenerate ? generatedQuiz : [],
       );
+
+      final response = await request.send().timeout(const Duration(minutes: 2));
       final resBody = await response.stream.bytesToString();
 
       setState(() => loading = false);
@@ -102,7 +105,7 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
       //  IMPORTANT: get quiz array directly
       final data = jsonDecode(resBody);
 
-// 🔥 STEP 1: ERROR CHECK
+      // STEP 1: ERROR CHECK
       if (data["error"] != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Server Error: ${data["error"]}")),
@@ -110,7 +113,7 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
         return;
       }
 
-// 🔥 STEP 2: SAFE EXTRACTION
+      // 🔥 STEP 2: SAFE EXTRACTION
       final quiz = data["quiz"] ?? data["questions"];
 
       if (quiz == null || quiz is! List) {
@@ -131,13 +134,10 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
       }
 
       if (widget.isTeacher) {
-
-
         if (academic.university == null ||
             academic.department == null ||
             academic.semester == null ||
             academic.subject == null) {
-
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Please fill Academic Info first")),
           );
@@ -158,8 +158,13 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
         );
 
         if (updatedQuiz != null && updatedQuiz is List) {
-          generatedQuiz = updatedQuiz;
+          generatedQuiz = List.from(updatedQuiz);
+
+          // Upload button was pressed in Edit screen
           await _saveQuiz();
+        }
+        if (updatedQuiz != null && updatedQuiz is List) {
+          generatedQuiz = updatedQuiz;
         }
       } else {
         // 🟢 STUDENT FLOW (DIRECT QUIZ)
@@ -184,7 +189,7 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
       setState(() => loading = false);
 
       ScaffoldMessenger.of(
-        context
+        context,
       ).showSnackBar(SnackBar(content: Text("Error: $e")));
     }
   }
@@ -195,15 +200,13 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
   //   AIQuizUploadScreen._instance = this;
   // }
 
-
-
   Future<void> _saveQuiz() async {
     if (!widget.isTeacher) return;
     if (academic.university == null ||
         academic.department == null ||
         academic.semester == null ||
         academic.subject == null ||
-        academic.location== null ||
+        academic.location == null ||
         generatedQuiz.isEmpty) {
       ScaffoldMessenger.of(
         context,
@@ -212,7 +215,7 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
     }
     setState(() => isLoading = true);
 
-    try{
+    try {
       final user = FirebaseAuth.instance.currentUser;
       final token = await user?.getIdToken();
 
@@ -235,18 +238,20 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
       );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            backgroundColor: Colors.green,
-            content: Text("Quiz Submitted Successfully")),
+          backgroundColor: Colors.green,
+          content: Text("Quiz Submitted Successfully"),
+        ),
       );
       Navigator.pop(context);
-    }catch(e){
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
-    }finally{
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: $e")));
+    } finally {
       if (mounted) setState(() => isLoading = false);
     }
   }
+
   Widget _card({required String title, required Widget child}) {
     return Container(
       width: double.infinity,
@@ -255,22 +260,14 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6,
-          )
-        ],
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
           ),
           const SizedBox(height: 10),
           child,
@@ -278,14 +275,15 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
       ),
     );
   }
-  // 🧩 UI
+// 🧩 UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
-          children:[ SingleChildScrollView(
+        children: [
+          SingleChildScrollView(
             child: Padding(
-              padding: EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -300,7 +298,6 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-
                             const Text(
                               'Academic Information',
                               style: TextStyle(
@@ -322,7 +319,8 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                         ),
                       ),
                     ),
-                  //  INFO TEXT
+
+                  // INFO TEXT
                   Text(
                     widget.isTeacher
                         ? "Upload notes to generate quiz (you can edit later)"
@@ -333,13 +331,13 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
 
                   const SizedBox(height: 30),
 
-                  // 📁 FILE BUTTON
+                  // FILE BUTTON
                   _card(
                     title: 'Upload File',
                     child: GestureDetector(
                       onTap: _pickFile,
                       child: Container(
-                        height: 150,
+                        height: 170,
                         width: double.infinity,
                         decoration: BoxDecoration(
                           color: selectedFile != null
@@ -368,14 +366,16 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                                   ? Colors.green
                                   : Colors.red,
                             ),
+
                             const SizedBox(height: 10),
 
-                            /// 🔹 FILE NAME
                             Text(
                               selectedFile != null
                                   ? p.basename(selectedFile!.path)
                                   : 'Tap to upload PDF or Image\nMaximum size: 10 MB',
                               textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: selectedFile != null
@@ -386,14 +386,19 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                                     : Colors.black54,
                               ),
                             ),
+
                             if (selectedFile != null) ...[
                               const SizedBox(height: 4),
+
                               FutureBuilder<int>(
                                 future: selectedFile!.length(),
                                 builder: (context, snapshot) {
-                                  if (!snapshot.hasData) return const SizedBox();
+                                  if (!snapshot.hasData) {
+                                    return const SizedBox();
+                                  }
 
-                                  final sizeMB = snapshot.data! / (1024 * 1024);
+                                  final sizeMB =
+                                      snapshot.data! / (1024 * 1024);
 
                                   return Text(
                                     isFileValid
@@ -401,16 +406,20 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                                         : '${sizeMB.toStringAsFixed(1)} MB • Maximum size is 10 MB',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: isFileValid ? Colors.green : Colors.red,
+                                      color: isFileValid
+                                          ? Colors.green
+                                          : Colors.red,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   );
                                 },
                               ),
                             ],
-                            /// 🔹 REMOVE BUTTON (IMPORTANT UX)
+
+                            // REMOVE
                             if (selectedFile != null) ...[
                               const SizedBox(height: 8),
+
                               GestureDetector(
                                 onTap: () {
                                   setState(() {
@@ -425,34 +434,37 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                                     fontSize: 12,
                                   ),
                                 ),
-                              )
-                            ]
+                              ),
+                            ],
                           ],
                         ),
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 10),
-
                   const SizedBox(height: 30),
 
-                  // 🤖 GENERATE BUTTON
+                  // GENERATE BUTTON
                   loading
                       ? const CircularProgressIndicator()
-                      :ElevatedButton(
+                      : ElevatedButton(
                     onPressed: widget.isTeacher
                         ? (isFileValid &&
                         academic.university != null &&
                         academic.department != null &&
                         academic.semester != null &&
                         academic.subject != null)
-                        ? generateQuiz
+                        ? () => generateQuiz()
                         : null
-                        : (isFileValid ? generateQuiz : null),
+                        : (isFileValid
+                        ? () => generateQuiz()
+                        : null),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
-                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 14,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -460,58 +472,75 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                     ),
                     child: const Text(
                       "Generate AI Quiz",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.white),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
+
+                  // REGENERATE BUTTON
+                  if (widget.isTeacher && generatedQuiz.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+
+                    OutlinedButton.icon(
+                      onPressed: loading ||
+                          selectedFile == null ||
+                          !isFileValid
+                          ? null
+                          : () => generateQuiz(isRegenerate: true),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text("Regenerate Quiz"),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
           ),
-            // LOADING OVERLAY
-            if (isLoading)
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: Colors.lightBlue.shade400,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
+
+          // LOADING OVERLAY
+          if (isLoading)
+            Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.lightBlue.shade400,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
                       ),
-                      SizedBox(width: 10),
-                      Text(
-                        "Uploading Quiz...",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      "Uploading Quiz...",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ],
                 ),
               ),
-          ]
+            ),
+        ],
       ),
     );
-  }
-}
-
-
-// await FirebaseFirestore.instance.collection('quizzes').add({
-//   "university": academic.university,
-//   "department": academic.department,
-//   "location": academic.location,
-//   "semester": int.tryParse(academic.semester?.split(' ').last ?? '') ?? 0,
-//   "subject": academic.subject,
-//   "questions": generatedQuiz,
-//   "userId": user?.uid,
-//   "type": "ai",
-//   "isPublic": true,
-//   "createdAt": Timestamp.now(),
-// });
+  }}

@@ -38,26 +38,10 @@ class _AIQuizEditScreenState extends State<AIQuizEditScreen> {
     quiz[qIndex]["options"][oIndex] = value;
   }
 
+
   Future<void> _saveQuiz() async {
-    // await FirebaseFirestore.instance.collection('quizzes').add({
-    //   "university": widget.university,
-    //   "department": widget.department,
-    //   "semester": widget.semester,
-    //   "subject": widget.subject,
-    //   "questions": quiz,
-    //   "isPublic": true,
-    //   "createdAt": Timestamp.now(),
-    // });
-
-    // if (!mounted) return;
-
-    // ScaffoldMessenger.of(
-    //   context,
-    // ).showSnackBar(SnackBar(content: Text("AI Quiz Saved")));
-
     Navigator.pop(context, quiz);
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -67,11 +51,43 @@ class _AIQuizEditScreenState extends State<AIQuizEditScreen> {
         foregroundColor: Colors.white,
         actions: [
           TextButton(
-            // onPressed: () => AIQuizEditScreen.submit(),
-            onPressed: () async {
-              await _saveQuiz();
+            onPressed: () {
+              Navigator.pop(context);
             },
-            child: const Text("Save", style: TextStyle(color: Colors.white)),
+            child: const Text(
+              "Cancel",
+              style: TextStyle(
+                color: Colors.white70,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ElevatedButton(
+              onPressed: () async {
+                await _saveQuiz();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.lightBlue,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                "Upload",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ),
         ],
       ),
