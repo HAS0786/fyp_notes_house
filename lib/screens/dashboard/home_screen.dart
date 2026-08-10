@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:fyp_ui_design/config.dart';
 import 'package:fyp_ui_design/firebase/services/local_notification_service.dart';
 import 'package:fyp_ui_design/firebase/services/notification_service.dart';
-import 'package:fyp_ui_design/screens/dashboard/searchbar.dart';
+import 'package:fyp_ui_design/screens/dashboard/searching_notes/searchbar.dart';
 import 'package:fyp_ui_design/screens/notes/allnotes/select_university_screen.dart';
 import 'package:fyp_ui_design/screens/notes/allnotes/teacherdraft/teacher_draft_screen.dart';
 import 'package:fyp_ui_design/screens/quiz/quiz_history/quiz_history_screen.dart';
