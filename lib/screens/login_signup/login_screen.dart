@@ -116,7 +116,10 @@ class _LoginScreenState extends State<LoginScreen> {
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value)) return 'Enter a valid email';
 
+    // FOr only testing Purpose:
+    const testTeacherEmail = 'hasnatmughal7565@gmail.com';
     if (widget.isTeacher &&
+        value != testTeacherEmail &&
         !value.endsWith('.edu.pk') &&
         !value.endsWith('.edu')) {
       return 'Teacher email must end with .edu or .edu.pk';

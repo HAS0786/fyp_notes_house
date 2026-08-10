@@ -7,13 +7,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 
-
 class NoteUploadService {
-    static Future<String> generateFileHash(File file) async {
+  static const int maxFileSize = 10 * 1024 * 1024;
+  static Future<String> generateFileHash(File file) async {
     final bytes = await file.readAsBytes();
     final hash = sha256.convert(bytes);
     return hash.toString();
   }
+
   /// 🔹 Fetch teacher name from Firestore
   static Future<String> _getTeacherName(String teacherId) async {
     final snap = await FirebaseFirestore.instance
@@ -33,9 +34,15 @@ class NoteUploadService {
     required int semester,
     required String resourceType,
     required String subject,
-    required String fileId, String? noteId,
+    required String fileId,
+    String? noteId,
   }) async {
     try {
+      final fileSize = await file.length();
+
+      if (fileSize > maxFileSize) {
+        return {"success": false, "error": "File size must be 10 MB or less."};
+      }
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return {"success": false};
 
@@ -76,10 +83,12 @@ class NoteUploadService {
         if (noteId != null) "noteId": noteId,
       });
 
-      // 🚀 SEND REQUEST
-      final response = await request.send();
+      //  SEND REQUEST
+      final response = await request.send().timeout(
+        const Duration(minutes: 2),
+      );
 
-      // 🔍 DEBUG (VERY IMPORTANT)
+      //  DEBUG (VERY IMPORTANT)
       final responseBody = await response.stream.bytesToString();
       print("STATUS: ${response.statusCode}");
       print("RESPONSE: $responseBody");
@@ -90,7 +99,11 @@ class NoteUploadService {
       return data;
     } catch (e) {
       print("Note upload error: $e");
-      return {"success": false};
+
+      return {
+        "success": false,
+        "error": "Unstable Internet Connection. Please try again.",
+      };
     }
   }
 }

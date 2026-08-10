@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -57,31 +58,6 @@ class _AIChatScreenState extends State<AIChatScreen> {
   Future<String?> getToken() async {
     return await FirebaseAuth.instance.currentUser?.getIdToken();
   }
-
-  // Future<void> createSession() async {
-  //   final token = await getToken();
-  //
-  //   final res = await http.post(
-  //     Uri.parse("$baseUrl/create-chat-session"),
-  //     headers: {"Authorization": "Bearer $token"},
-  //   );
-  //
-  //   if (res.statusCode != 200) {
-  //     setState(() {
-  //       messages.add({
-  //         "text": "AI error. Try again.",
-  //         "isUser": false,
-  //         "isTyped": true,
-  //       });
-  //       isLoading = false;
-  //     });
-  //     return;
-  //   }
-  //
-  //   final data = jsonDecode(res.body);
-  //   sessionId = data["sessionId"];
-  // }
-
   Future<String?> createSession() async {
     final token = await getToken();
 
@@ -166,10 +142,12 @@ class _AIChatScreenState extends State<AIChatScreen> {
       request.files.add(
         await http.MultipartFile.fromPath("file", activeFilePath!),
       );
-      activeFilePath = null; // 🔥 send only once
+      activeFilePath = null; //  send only once
     }
 
-    final response = await request.send();
+    final response = await request.send().timeout(
+      const Duration(minutes: 2),
+    );
     final res = await http.Response.fromStream(response);
     if (res.statusCode != 200) {
       setState(() {
@@ -205,8 +183,22 @@ class _AIChatScreenState extends State<AIChatScreen> {
   Future<void> pickFile() async {
     final result = await FilePicker.platform.pickFiles();
 
-    if (result != null) {
-      activeFilePath = result.files.single.path; // use activeFilePath
+    if (result != null && result.files.single.path != null) {
+      final file = File(result.files.single.path!);
+      final size = await file.length();
+
+      if (size > 10 * 1024 * 1024) {
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('File size must be 10 MB or less.'),
+          ),
+        );
+        return;
+      }
+
+      activeFilePath = file.path;
 
       setState(() {
         messages.add({

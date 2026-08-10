@@ -55,6 +55,7 @@ dependencies:
   firebase_messaging: ^16.1.0 # for Messaging FCM
   flutter_local_notifications: ^19.5.0 # for displaying Notification on Screen like WhatsApp
   flutter_markdown: ^0.7.7+1
+  connectivity_plus: ^7.3.1
 
 #  firebase_storage: ^13.0.5  # now Paid So I not used this:::
 

@@ -33,6 +33,7 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
 
   // Selected file
   File? selectedFile;
+  bool isFileValid = false;
 
   List<String> typeofDocument = [
     'Books',
@@ -63,6 +64,7 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
   void initState() {
     super.initState();
     selectedFile = null;
+    isFileValid = false;
     if (widget.isEdit && widget.noteData != null) {
       titleCtrl.text = widget.noteData!['title'] ?? '';
       descCtrl.text = widget.noteData!['description'] ?? '';
@@ -79,24 +81,60 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
     print(widget.noteData);
   }
 
+  // Future<void> _pickFile() async {
+  //   final result = await FilePicker.platform.pickFiles(
+  //     allowMultiple: false,
+  //     type: FileType.any, //  IMPORTANT
+  //   );
+  //
+  //   if (result != null && result.files.single.path != null) {
+  //     final file = File(result.files.single.path!);
+  //
+  //     setState(() {
+  //       selectedFile = file;
+  //     });
+  //
+  //     debugPrint("FILE PICKED: ${file.path}");
+  //   }
+  // }
+
+  // Upload note
   Future<void> _pickFile() async {
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: false,
-      type: FileType.any, //  IMPORTANT
+      type: FileType.any,
     );
 
     if (result != null && result.files.single.path != null) {
       final file = File(result.files.single.path!);
+      final fileSize = await file.length();
+
+      if (fileSize > NoteUploadService.maxFileSize) {
+        setState(() {
+          selectedFile = file;
+          isFileValid = false;
+        });
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context as BuildContext).showSnackBar(
+          const SnackBar(
+            content: Text('File size must be 10 MB or less.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+
+        return;
+      }
 
       setState(() {
         selectedFile = file;
+        isFileValid = true;
       });
 
       debugPrint("FILE PICKED: ${file.path}");
     }
   }
-
-  // Upload note
   Future<void> _uploadNote(BuildContext context) async {
     if (titleCtrl.text.trim().isEmpty ||
     academic.university == null ||
@@ -104,7 +142,7 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
         academic.department == null ||
         academic.semester == null ||
         academic.subject == null ||
-        (widget.isEdit == false && selectedFile == null) ||
+        (widget.isEdit == false && (selectedFile == null || !isFileValid)) ||
         selectedTypeofDocument == null) {
       ScaffoldMessenger.of(
         context,
@@ -337,13 +375,17 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            selectedFile != null
+                            selectedFile != null && isFileValid
                                 ? Icons.check_circle
+                                : selectedFile != null
+                                ? Icons.cancel
                                 : Icons.cloud_upload,
                             size: 55,
-                            color: selectedFile != null
+                            color: selectedFile != null && isFileValid
                                 ? Colors.green
-                                : Colors.grey,
+                                : selectedFile != null
+                                ? Colors.red
+                                : Colors.grey
                           ),
                           const SizedBox(height: 10),
 
@@ -354,7 +396,7 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
                                 :  (widget.isEdit
                                 ? getCleanName(widget.noteData?['fileUrl'] ??
                                             "File already uploaded")
-                                      : "Tap to upload PDF or Image"),
+                                      : "Tap to upload PDF or Image\nMaximum size: 10 MB"),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 14,
@@ -366,7 +408,28 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
                                   : Colors.black54,
                             ),
                           ),
+                          if (selectedFile != null) ...[
+                            const SizedBox(height: 4),
+                            FutureBuilder<int>(
+                              future: selectedFile!.length(),
+                              builder: (context, snapshot) {
+                                if (!snapshot.hasData) return const SizedBox();
 
+                                final sizeMB = snapshot.data! / (1024 * 1024);
+
+                                return Text(
+                                  isFileValid
+                                      ? '${sizeMB.toStringAsFixed(1)} MB • Valid file'
+                                      : '${sizeMB.toStringAsFixed(1)} MB • Maximum size is 10 MB',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isFileValid ? Colors.green : Colors.red,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                           /// 🔹 REMOVE BUTTON (IMPORTANT UX)
                           if (selectedFile != null) ...[
                             const SizedBox(height: 8),
@@ -390,7 +453,6 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
 
                 /// ================= NOTE DETAILS =================

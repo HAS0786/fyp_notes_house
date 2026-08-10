@@ -12,6 +12,7 @@ import '../../../auth/email_verification_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   final bool isTeacher;
+
   const SignupScreen({super.key, required this.isTeacher});
 
   @override
@@ -106,7 +107,19 @@ class _SignupScreenState extends State<SignupScreen> {
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value)) return 'Enter a valid email';
 
+    // Real Validity
+    // if (widget.isTeacher &&
+    //     !value.endsWith('.edu.pk') &&
+    //     !value.endsWith('.edu')) {
+    //   return 'Teacher email must end with .edu or .edu.pk';
+    // }
+
+    // only for testing
+
+    const testTeacherEmail = 'hasnatmughal7565@gmail.com';
     if (widget.isTeacher &&
+
+
         !value.endsWith('.edu.pk') &&
         !value.endsWith('.edu')) {
       return 'Teacher email must end with .edu or .edu.pk';
@@ -125,6 +138,21 @@ class _SignupScreenState extends State<SignupScreen> {
     return null;
   }
 
+  String? _validateUniversity(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'University is required';
+    }
+
+    if (value.trim().length < 3) {
+      return 'Enter a valid university name';
+    }
+
+    if (!RegExp(r'[A-Za-z]').hasMatch(value.trim())) {
+      return 'Enter a valid university name';
+    }
+
+    return null;
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -160,6 +188,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   'Punjab University',
                   Icons.school,
                 ),
+                validator: _validateUniversity,
               ),
               const SizedBox(height: 16),
 

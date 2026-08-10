@@ -22,6 +22,7 @@ class AIQuizUploadScreen extends StatefulWidget {
 class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
   AcademicSelection academic = AcademicSelection();
   bool isLoading = false;
+  bool isFileValid = false;
   File? selectedFile;
   bool loading = false;
 
@@ -34,8 +35,30 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
     );
 
     if (result != null && result.files.single.path != null) {
+      final file = File(result.files.single.path!);
+      final size = await file.length();
+
+      if (size > 10 * 1024 * 1024) {
+        setState(() {
+          selectedFile = file;
+          isFileValid = false;
+        });
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('File size must be 10 MB or less.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+
+        return;
+      }
+
       setState(() {
-        selectedFile = File(result.files.single.path!);
+        selectedFile = file;
+        isFileValid = true;
       });
     }
   }
@@ -69,7 +92,9 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
           academic.semester?.toString() ?? "";
       request.fields['location'] = academic.location ?? "";
 
-      final response = await request.send();
+      final response = await request.send().timeout(
+        const Duration(minutes: 2),
+      );
       final resBody = await response.stream.bytesToString();
 
       setState(() => loading = false);
@@ -331,13 +356,17 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              selectedFile != null
+                              selectedFile == null
+                                  ? Icons.cloud_upload
+                                  : isFileValid
                                   ? Icons.check_circle
-                                  : Icons.cloud_upload,
+                                  : Icons.cancel,
                               size: 55,
-                              color: selectedFile != null
+                              color: selectedFile == null
+                                  ? Colors.grey
+                                  : isFileValid
                                   ? Colors.green
-                                  : Colors.grey,
+                                  : Colors.red,
                             ),
                             const SizedBox(height: 10),
 
@@ -345,7 +374,7 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                             Text(
                               selectedFile != null
                                   ? p.basename(selectedFile!.path)
-                                  : 'Tap to upload PDF or Image',
+                                  : 'Tap to upload PDF or Image\nMaximum size: 10 MB',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 14,
@@ -357,7 +386,28 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                                     : Colors.black54,
                               ),
                             ),
+                            if (selectedFile != null) ...[
+                              const SizedBox(height: 4),
+                              FutureBuilder<int>(
+                                future: selectedFile!.length(),
+                                builder: (context, snapshot) {
+                                  if (!snapshot.hasData) return const SizedBox();
 
+                                  final sizeMB = snapshot.data! / (1024 * 1024);
+
+                                  return Text(
+                                    isFileValid
+                                        ? '${sizeMB.toStringAsFixed(1)} MB • Valid file'
+                                        : '${sizeMB.toStringAsFixed(1)} MB • Maximum size is 10 MB',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isFileValid ? Colors.green : Colors.red,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
                             /// 🔹 REMOVE BUTTON (IMPORTANT UX)
                             if (selectedFile != null) ...[
                               const SizedBox(height: 8),
@@ -365,6 +415,7 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                                 onTap: () {
                                   setState(() {
                                     selectedFile = null;
+                                    isFileValid = false;
                                   });
                                 },
                                 child: const Text(
@@ -391,13 +442,14 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                       ? const CircularProgressIndicator()
                       :ElevatedButton(
                     onPressed: widget.isTeacher
-                        ? (academic.university == null ||
-                        academic.department == null ||
-                        academic.semester == null ||
-                        academic.subject == null)
-                        ? null
-                        : generateQuiz
-                        : generateQuiz,
+                        ? (isFileValid &&
+                        academic.university != null &&
+                        academic.department != null &&
+                        academic.semester != null &&
+                        academic.subject != null)
+                        ? generateQuiz
+                        : null
+                        : (isFileValid ? generateQuiz : null),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),

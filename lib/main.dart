@@ -16,6 +16,7 @@ import 'package:fyp_ui_design/screens/login_signup/login_screen.dart';
 import 'package:fyp_ui_design/screens/login_signup/sign_up/signup_screen.dart';
 import 'package:fyp_ui_design/screens/quiz/quiz_upload/create_mcq_screen.dart';
 import 'package:fyp_ui_design/screens/roles_selection/chose_role_screen.dart';
+import 'package:fyp_ui_design/services/connectivity_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -105,6 +106,13 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
 
+      // Internet Connectivity:
+
+      builder: (context, child) {
+        return ConnectivityService(
+          child: child ?? const SizedBox(),
+        );
+      },
       //  Entry point
       home: const SplashScreen(),
 
