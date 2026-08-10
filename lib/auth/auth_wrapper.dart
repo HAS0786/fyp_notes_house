@@ -8,6 +8,7 @@ import 'package:fyp_ui_design/screens/roles_selection/student_details_screen.dar
 import '../screens/dashboard/home_screen.dart';
 import '../screens/dashboard/pendingapproval/pendingapprovalscreen.dart';
 import '../screens/roles_selection/chose_role_screen.dart';
+import 'email_verification_screen.dart';
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
@@ -74,14 +75,19 @@ class _AuthWrapperState extends State<AuthWrapper> {
           );
         }
 
-        // ❌ Not logged in
+        //  Not logged in
         if (!authSnap.hasData) {
           return const ChooseRoleScreen();
         }
 
         final user = authSnap.data!;
 
-        // ✅ Logged in → fetch role
+        // Email verification check
+        if (!user.emailVerified) {
+          return const EmailVerificationScreen();
+        }
+
+        //  Logged in → fetch role
         return FutureBuilder<Map<String, dynamic>?>(
           future: _getUserData(user),
           builder: (context, roleSnap) {
@@ -102,26 +108,17 @@ class _AuthWrapperState extends State<AuthWrapper> {
             final role = data['role'];
             final status = data['status'];
 
-            // final university = data['university'];
-            // final department = data['department'];
-            // final semester = data['semester'];
-
-            // /// 🎓 Student details missing
-            // if (role == 'student' &&
-            //     (university == null || department == null || semester == null)) {
-            //   return const StudentDetailsScreen();
-            // }
-            /// 🛑 Pending teacher
+            /// Pending teacher
             if (role == 'teacher' && status == 'pending') {
               return const PendingApprovalScreen();
             }
 
-            // 🧑‍💼 Admin dashboard
+            //  Admin dashboard
             if (role == 'admin') {
               return const AdminDashboard();
             }
 
-            // 🎓 Student / Teacher
+            // Student / Teacher
             if (role == 'student' || role == 'teacher') {
               return const HomeScreen();
             }

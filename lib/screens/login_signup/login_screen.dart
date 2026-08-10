@@ -8,6 +8,8 @@ import 'package:fyp_ui_design/firebase/services/auth_role_service.dart';
 import 'package:fyp_ui_design/firebase/services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../auth/email_verification_screen.dart';
+
 class LoginScreen extends StatefulWidget {
   final bool isTeacher;
   const LoginScreen({super.key, required this.isTeacher});
@@ -72,6 +74,20 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailCtrl.text.trim(),
         password: _passCtrl.text.trim(),
       );
+      if (!credential.user!.emailVerified) {
+        if (!mounted) return;
+
+        setState(() => _isLoading = false);
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const EmailVerificationScreen(),
+          ),
+        );
+
+        return;
+      }
 
       // Sync role only (no navigation decision here)
       await AuthRoleService.syncUserToLocal(user: credential.user!);

@@ -8,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fyp_ui_design/auth/google_auth_service.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../auth/email_verification_screen.dart';
+
 class SignupScreen extends StatefulWidget {
   final bool isTeacher;
   const SignupScreen({super.key, required this.isTeacher});
@@ -36,12 +38,13 @@ class _SignupScreenState extends State<SignupScreen> {
       /// CREATE AUTH USER
       final userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
-            email: _emailCtrl.text.trim(),
-            password: _passCtrl.text.trim(),
-          );
+        email: _emailCtrl.text.trim(),
+        password: _passCtrl.text.trim(),
+      );
 
       final uid = userCredential.user!.uid;
 
+      await userCredential.user!.sendEmailVerification();
       /// STORE USER DATA IN FIRESTORE
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'name': _nameCtrl.text.trim(),
@@ -52,6 +55,10 @@ class _SignupScreenState extends State<SignupScreen> {
         'createdAt': FieldValue.serverTimestamp(),
         "notificationsEnabled": true,
       });
+      print("========== SIGNUP SUCCESS ==========");
+      print("USER: ${userCredential.user!.email}");
+      print("VERIFIED: ${userCredential.user!.emailVerified}");
+      print("GOING TO EMAIL VERIFICATION SCREEN");
 
       // CACHE ROLE (IMPORTANT)
       final prefs = await SharedPreferences.getInstance();
@@ -66,10 +73,11 @@ class _SignupScreenState extends State<SignupScreen> {
       );
 
       /// NAVIGATION → AUTH WRAPPER WILL HANDLE NEXT
-      Navigator.pushReplacementNamed(
+      Navigator.pushReplacement(
         context,
-        '/login',
-        arguments: widget.isTeacher,
+        MaterialPageRoute(
+          builder: (_) => const EmailVerificationScreen(),
+        ),
       );
       setState(() => _isLoading = false);
     } on FirebaseAuthException catch (e) {
@@ -78,6 +86,7 @@ class _SignupScreenState extends State<SignupScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text(e.message ?? 'Signup failed')));
     } catch (_) {
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Something went wrong')));
