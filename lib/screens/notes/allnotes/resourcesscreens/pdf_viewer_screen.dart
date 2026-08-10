@@ -48,25 +48,90 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
           path.toLowerCase().endsWith(".jpg") ||
           path.toLowerCase().endsWith(".jpeg");
 
+  // Future<void> _downloadTempFile() async {
+  //   try {
+  //     final response = await http.get(Uri.parse(widget.fileUrl));
+  //
+  //     final dir = await getTemporaryDirectory();
+  //     final file = File('${dir.path}/${widget.title}.pdf');
+  //
+  //     await file.writeAsBytes(response.bodyBytes);
+  //
+  //     setState(() {
+  //       localPath = file.path;
+  //       loading = false;
+  //     });
+  //   } catch (e) {
+  //     _showMessage('Failed to load file');
+  //   }
+  // }
+
+  // 🔹 Save for offline use
+
   Future<void> _downloadTempFile() async {
     try {
-      final response = await http.get(Uri.parse(widget.fileUrl));
+      print("PDF URL: ${widget.fileUrl}");
+
+      final response = await http.get(
+        Uri.parse(widget.fileUrl),
+      );
+
+      print("PDF STATUS: ${response.statusCode}");
+      print("PDF CONTENT-TYPE: ${response.headers['content-type']}");
+      print("PDF SIZE: ${response.bodyBytes.length}");
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          "PDF download failed: ${response.statusCode}",
+        );
+      }
+
+      final contentType = response.headers['content-type'];
+
+      if (contentType != null &&
+          !contentType.toLowerCase().contains('application/pdf')) {
+        throw Exception(
+          "Not a PDF. Content-Type: $contentType",
+        );
+      }
 
       final dir = await getTemporaryDirectory();
-      final file = File('${dir.path}/${widget.title}.pdf');
 
-      await file.writeAsBytes(response.bodyBytes);
+      final safeTitle = widget.title.replaceAll(
+        RegExp(r'[\\/:*?"<>|]'),
+        '_',
+      );
+
+      final file = File(
+        '${dir.path}/$safeTitle.pdf',
+      );
+
+      await file.writeAsBytes(
+        response.bodyBytes,
+        flush: true,
+      );
+
+      print("PDF SAVED AT: ${file.path}");
+
+      if (!mounted) return;
 
       setState(() {
         localPath = file.path;
         loading = false;
       });
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print("PDF LOAD ERROR: $e");
+      print(stackTrace);
+
+      if (!mounted) return;
+
+      setState(() {
+        loading = false;
+      });
+
       _showMessage('Failed to load file');
     }
   }
-
-  // 🔹 Save for offline use
   Future<void> _downloadOffline() async {
     try {
       final dir = await getApplicationDocumentsDirectory();
