@@ -156,10 +156,10 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
 
     setState(() => isUploading = true);
 
-    /// 🔥 EDIT MODE
+    /// EDIT MODE
     if (widget.isEdit && widget.noteId != null) {
 
-      // 🔥 CASE 1: USER ne NEW FILE select ki hai
+      // CASE 1: USER ne NEW FILE select ki hai
       if (selectedFile != null) {
         final result = await NoteUploadService.uploadNote(
           file: selectedFile!,
@@ -174,7 +174,7 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
           noteId: widget.noteId,
         );
 
-        setState(() => isUploading = false); // 🔥 ALWAYS STOP LOADER
+        setState(() => isUploading = false); //  ALWAYS STOP LOADER
 
         if (!mounted) return;
 
@@ -253,10 +253,16 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
       else if (result['success'] == true) {
         setState(() => isUploading = false);
 
+        final status = result['status'];
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Note uploaded in Draft and pending for Admin-Review"),
+          SnackBar(
             backgroundColor: Colors.green,
+            content: Text(
+              status == 'approved'
+                  ? "Note uploaded successfully"
+                  : "Note uploaded in Draft and pending for Admin-Review",
+            ),
           ),
         );
 

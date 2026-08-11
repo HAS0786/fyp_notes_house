@@ -2,10 +2,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fyp_ui_design/screens/notes/allnotes/resourcesscreens/pdf_viewer_screen.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fyp_ui_design/config.dart';
-
+import 'package:flutter/foundation.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 class AdminNotesScreen extends StatelessWidget {
   const AdminNotesScreen({super.key});
@@ -28,27 +31,37 @@ class AdminNotesScreen extends StatelessWidget {
     );
   }
 
-  Future<void> openFile(String url) async {
-    final uri = Uri.parse(url);
+  Future<void> openFile(BuildContext context, String url, String title) async {
+    // 🌐 Web / Laptop
+    if (kIsWeb) {
+      final uri = Uri.parse(url);
 
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw "Could not open file";
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        throw "Could not open file";
+      }
+
+      return;
     }
+
+    // 📱 Android / iOS
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FileViewerScreen(fileUrl: url, title: title),
+      ),
+    );
   }
+
   Future<void> rejectNote(String noteId, String reason) async {
     final token = await _getToken();
 
     await http.post(
-
       Uri.parse("$baseUrl/reject-note"),
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",
       },
-      body: jsonEncode({
-        "noteId": noteId,
-        "reason": reason,
-      }),
+      body: jsonEncode({"noteId": noteId, "reason": reason}),
     );
   }
 
@@ -61,9 +74,7 @@ class AdminNotesScreen extends StatelessWidget {
         title: const Text("Reject Note"),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            hintText: "Enter rejection reason",
-          ),
+          decoration: const InputDecoration(hintText: "Enter rejection reason"),
         ),
         actions: [
           TextButton(
@@ -89,12 +100,7 @@ class AdminNotesScreen extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: Colors.grey),
           const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 13),
-            ),
-          ),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 13))),
         ],
       ),
     );
@@ -120,14 +126,10 @@ class AdminNotesScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           /// TITLE
           Text(
             note['title'] ?? "No Title",
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
 
           const SizedBox(height: 10),
@@ -141,39 +143,67 @@ class AdminNotesScreen extends StatelessWidget {
           const SizedBox(height: 12),
 
           /// ACTION BUTTONS
-          Row(
+          /// ACTION BUTTONS
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                    foregroundColor: Colors.white
-                ),
-                onPressed: () => approveNote(doc.id),
-                child: const Text("Approve"),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () => approveNote(doc.id),
+                      child: const Text("Approve"),
+                    ),
+                  ),
+
+                  const SizedBox(width: 10),
+
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () => showRejectDialog(context, doc.id),
+                      child: const Text("Reject"),
+                    ),
+                  ),
+                ],
               ),
 
-              const SizedBox(width: 10),
+              const SizedBox(height: 10),
 
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                    foregroundColor: Colors.white
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.lightBlue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+
+                  onPressed: ()  {
+                final furl = note['fileUrl'];
+                final name = note['title'];
+                    openFile(context, furl,name);},
+                  icon: const Icon(Icons.visibility),
+                  label: const Text("View File / Notes"),
                 ),
-                onPressed: () => showRejectDialog(context, doc.id),
-                child: const Text("Reject"),
-              ),
-
-              const SizedBox(width: 10),
-
-              /// 🔹 VIEW BUTTON
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.lightBlue,
-                  foregroundColor: Colors.white
-                ),
-                onPressed: () => openFile(note['fileUrl']),
-                icon: const Icon(Icons.visibility),
-                label: const Text("View File/Notes"),
               ),
             ],
           ),
@@ -217,7 +247,6 @@ class AdminNotesScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             itemCount: notes.length,
             itemBuilder: (_, i) => buildCard(context, notes[i]),
-
           );
         },
       ),

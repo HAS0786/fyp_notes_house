@@ -167,7 +167,7 @@ class _QuizScreenState extends State<QuizScreen> {
     await FirebaseFirestore.instance.collection('quiz_attempts').add({
       "userId": user.uid,
       "quizId": widget.quizId ??
-          "AI_${DateTime.now().millisecondsSinceEpoch}", // 🔥 FIX
+          "AI_${DateTime.now().millisecondsSinceEpoch}", //  FIX
       "score": score,
       "total": total,
       "accuracy": accuracy,
