@@ -34,6 +34,8 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
   // Selected file
   File? selectedFile;
   bool isFileValid = false;
+// Existing file from Firestore (Edit mode)
+  String? existingFileName;
 
   List<String> typeofDocument = [
     'Books',
@@ -68,15 +70,17 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
     if (widget.isEdit && widget.noteData != null) {
       titleCtrl.text = widget.noteData!['title'] ?? '';
       descCtrl.text = widget.noteData!['description'] ?? '';
+      existingFileName =
+          widget.noteData!['fileName']?.toString() ??
+              getCleanName(widget.noteData!['fileUrl']?.toString() ?? '');
       academic.subject = widget.noteData!['subject'] ?? '';
       academic.university = widget.noteData!['university'];
       academic.location = widget.noteData!['location'];
       academic.department = widget.noteData!['department'];
       academic.semester = widget.noteData!['semester'];
       String doc = (widget.noteData?['category'] ?? "").toString().trim();
-      selectedTypeofDocument = typeofDocument.contains(doc) ? doc : null;
-          widget.noteData!['type'] ??
-          widget.noteData!['documentType'];
+      selectedTypeofDocument =
+      typeofDocument.contains(doc) ? doc : null;
     }
     print(widget.noteData);
   }
@@ -393,17 +397,21 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
                           Text(
                             selectedFile != null
                                 ? basename(selectedFile!.path)
+                                : existingFileName != null && existingFileName!.isNotEmpty
+                                ? existingFileName!
                                 : 'Tap to upload PDF or Image\nMaximum size: 10 MB',
                             textAlign: TextAlign.center,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 14,
-                              fontWeight: selectedFile != null
+                              fontWeight: selectedFile != null || existingFileName != null
                                   ? FontWeight.w600
                                   : FontWeight.normal,
                               color: selectedFile != null
                                   ? Colors.green.shade700
+                                  : existingFileName != null
+                                  ? Colors.blue.shade700
                                   : Colors.black54,
                             ),
                           ),

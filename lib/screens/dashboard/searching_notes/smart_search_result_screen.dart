@@ -59,12 +59,22 @@ class _SmartSearchResultScreenState
       final department =
       (data['department'] ?? '').toString().toLowerCase();
 
+      final keywords = (data['keywords'] is List)
+          ? (data['keywords'] as List)
+          .map((e) => e.toString().toLowerCase())
+          .toList()
+          : <String>[];
+
       int score = 0;
 
       // Exact phrase
       if (title.contains(query)) score += 10;
       if (subject.contains(query)) score += 8;
       if (description.contains(query)) score += 5;
+     //  Exact phrase found in extracted keywords
+      if (keywords.any((keyword) => keyword.contains(query))) {
+        score += 10;
+      }
 
       // Individual keywords
       for (final word in words) {
@@ -74,6 +84,10 @@ class _SmartSearchResultScreenState
         if (category.contains(word)) score += 1;
         if (university.contains(word)) score += 1;
         if (department.contains(word)) score += 1;
+        // NEW: extracted PDF keywords
+        if (keywords.any((keyword) => keyword.contains(word))) {
+          score += 6;
+        }
       }
 
       if (score > 0) {
