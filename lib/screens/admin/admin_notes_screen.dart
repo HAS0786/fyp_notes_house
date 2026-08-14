@@ -32,7 +32,7 @@ class AdminNotesScreen extends StatelessWidget {
   }
 
   Future<void> openFile(BuildContext context, String url, String title) async {
-    // 🌐 Web / Laptop
+    //  Web / Laptop
     if (kIsWeb) {
       final uri = Uri.parse(url);
 
@@ -43,7 +43,9 @@ class AdminNotesScreen extends StatelessWidget {
       return;
     }
 
-    // 📱 Android / iOS
+
+
+    // Android / iOS
     Navigator.push(
       context,
       MaterialPageRoute(
