@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fyp_ui_design/firebase/services/academic_correction_service.dart';
 
 class AdminCollectionViewScreen extends StatefulWidget {
   final String title;
@@ -86,6 +87,65 @@ class _AdminCollectionViewScreenState
     super.dispose();
   }
 
+// ============================================================
+// SNACKBAR
+// ============================================================
+
+  void _showSnackBar(
+      String message, {
+        bool isError = false,
+      }) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context)
+        .hideCurrentSnackBar();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor:
+        isError ? Colors.red : Colors.green,
+        content: Text(message),
+      ),
+    );
+  }
+  // ============================================================
+// EDIT ACADEMIC NAME
+// ============================================================
+
+  Future<void> _showEditDialog(
+      BuildContext context,
+      Map<String, dynamic> data,
+      String documentId,
+      ) async {
+    String editType;
+
+    if (isUniversities) {
+      editType = 'university';
+    } else if (isDepartments) {
+      editType = 'department';
+    } else {
+      editType = 'course';
+    }
+
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return _EditAcademicNameDialog(
+          editType: editType,
+          data: data,
+          documentId: documentId,
+        );
+      },
+    );
+
+    // The dialog has completely finished its lifecycle now.
+    if (result == true && mounted) {
+      _showSnackBar(
+        "${editType[0].toUpperCase()}${editType.substring(1)} updated successfully.",
+      );
+    }
+  }
   // ============================================================
   // SEARCH
   // ============================================================
@@ -1382,70 +1442,64 @@ class _AdminCollectionViewScreenState
   }
 
   // ============================================================
-  // DETAIL TILE
-  // ============================================================
+// DETAIL TILE
+// ============================================================
 
   Widget _buildDetailTile(
       BuildContext context,
       Map<String, dynamic> data,
       String documentId,
       ) {
-    final details =
-    _getDetails(data);
+    final details = _getDetails(data);
+
+    final bool canEdit = isUniversities ||
+            isDepartments ||
+            isCourses;
 
     return Container(
-      padding:
-      const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
 
-      decoration:
-      BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-
-        borderRadius:
-        BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16),
 
         boxShadow: [
           BoxShadow(
-            color:
-            Colors.black.withOpacity(
-              0.04,
-            ),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 7,
-            offset:
-            const Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
 
       child: Row(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
 
         children: [
+          // ======================================================
+          // ICON
+          // ======================================================
+
           Container(
-            padding:
-            const EdgeInsets.all(11),
+            padding: const EdgeInsets.all(11),
 
-            decoration:
-            BoxDecoration(
-              color: Colors.lightBlue
-                  .withOpacity(0.10),
-
-              borderRadius:
-              BorderRadius.circular(12),
+            decoration: BoxDecoration(
+              color: Colors.lightBlue.withOpacity(0.10),
+              borderRadius: BorderRadius.circular(12),
             ),
 
             child: Icon(
               _getIcon(),
-              color:
-              Colors.lightBlue,
+              color: Colors.lightBlue,
               size: 24,
             ),
           ),
 
-          const SizedBox(
-            width: 14,
-          ),
+          const SizedBox(width: 14),
+
+          // ======================================================
+          // INFORMATION
+          // ======================================================
 
           Expanded(
             child: Column(
@@ -1454,32 +1508,25 @@ class _AdminCollectionViewScreenState
 
               children: [
                 Text(
-                  details['title'] ??
-                      "Unknown",
+                  details['title'] ?? "Unknown",
 
-                  style:
-                  const TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
-                    fontWeight:
-                    FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
 
-                const SizedBox(
-                  height: 7,
-                ),
+                const SizedBox(height: 7),
 
                 ...details.entries
                     .where(
                       (entry) =>
-                  entry.key !=
-                      'title',
+                  entry.key != 'title',
                 )
                     .map(
                       (entry) => Padding(
                     padding:
-                    const EdgeInsets
-                        .only(
+                    const EdgeInsets.only(
                       bottom: 3,
                     ),
 
@@ -1489,8 +1536,7 @@ class _AdminCollectionViewScreenState
                       style:
                       const TextStyle(
                         fontSize: 12,
-                        color:
-                        Colors.black54,
+                        color: Colors.black54,
                       ),
                     ),
                   ),
@@ -1498,10 +1544,31 @@ class _AdminCollectionViewScreenState
               ],
             ),
           ),
+
+          // ======================================================
+          // EDIT BUTTON
+          // ======================================================
+
+          if (canEdit)
+            IconButton(
+              tooltip: "Edit",
+              icon: const Icon(
+                Icons.edit_outlined,
+                color: Colors.lightBlue,
+              ),
+              onPressed: () {
+                _showEditDialog(
+                  context,
+                  data,
+                  documentId,
+                );
+              },
+            ),
         ],
       ),
     );
   }
+
 
   // ============================================================
   // BUILD
@@ -1871,5 +1938,320 @@ class _AdminCollectionViewScreenState
       default:
         return 'Search';
     }
+  }
+}
+
+
+class _EditAcademicNameDialog extends StatefulWidget {
+  final String editType;
+  final Map<String, dynamic> data;
+  final String documentId;
+
+  const _EditAcademicNameDialog({
+    required this.editType,
+    required this.data,
+    required this.documentId,
+  });
+
+  @override
+  State<_EditAcademicNameDialog> createState() =>
+      _EditAcademicNameDialogState();
+}
+
+class _EditAcademicNameDialogState
+    extends State<_EditAcademicNameDialog> {
+
+  late final TextEditingController _controller;
+
+  bool _loading = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = TextEditingController(
+      text: widget.data['name']?.toString() ??
+          widget.data['course']?.toString() ??
+          widget.data['subject']?.toString() ??
+          '',
+    );
+  }
+
+  @override
+  void dispose() {
+    // IMPORTANT:
+    // The dialog owns the controller.
+    // Flutter disposes the dialog widget after its
+    // route/animation lifecycle is finished.
+    _controller.dispose();
+
+    super.dispose();
+  }
+
+  String get _oldName {
+    return widget.data['name']?.toString().trim() ??
+        widget.data['course']?.toString().trim() ??
+        widget.data['subject']?.toString().trim() ??
+        '';
+  }
+
+  String get _dialogTitle {
+    switch (widget.editType) {
+      case 'university':
+        return 'Edit University';
+
+      case 'department':
+        return 'Edit Department';
+
+      case 'course':
+        return 'Edit Course';
+
+      default:
+        return 'Edit Name';
+    }
+  }
+
+  String get _fieldLabel {
+    switch (widget.editType) {
+      case 'university':
+        return 'University Name';
+
+      case 'department':
+        return 'Department Name';
+
+      case 'course':
+        return 'Course Name';
+
+      default:
+        return 'Name';
+    }
+  }
+
+  IconData get _icon {
+    switch (widget.editType) {
+      case 'university':
+        return Icons.account_balance;
+
+      case 'department':
+        return Icons.domain;
+
+      case 'course':
+        return Icons.menu_book;
+
+      default:
+        return Icons.edit;
+    }
+  }
+
+  Future<void> _save() async {
+    if (_loading) return;
+
+    final newName = _controller.text.trim();
+
+    // ==========================================================
+    // EMPTY NAME
+    // ==========================================================
+
+    if (newName.isEmpty) {
+      setState(() {
+        _errorMessage = 'Name cannot be empty.';
+      });
+
+      return;
+    }
+
+    // ==========================================================
+    // SAME NAME
+    // ==========================================================
+
+    if (newName == _oldName) {
+      setState(() {
+        _errorMessage = 'No changes were made.';
+      });
+
+      return;
+    }
+
+    // ==========================================================
+    // START LOADING
+    // ==========================================================
+
+    setState(() {
+      _loading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // ========================================================
+      // UNIVERSITY
+      // ========================================================
+
+      if (widget.editType == 'university') {
+        await AcademicCorrectionService.renameUniversity(
+          oldName: _oldName,
+          newName: newName,
+        );
+      }
+
+      // ========================================================
+      // DEPARTMENT
+      // ========================================================
+
+      else if (widget.editType == 'department') {
+        await AcademicCorrectionService.renameDepartment(
+          oldName: _oldName,
+          newName: newName,
+          university:
+          widget.data['university']?.toString() ?? '',
+          location:
+          widget.data['location']?.toString() ?? '',
+        );
+      }
+
+      // ========================================================
+      // COURSE
+      // ========================================================
+
+      else if (widget.editType == 'course') {
+        await AcademicCorrectionService.renameCourse(
+          oldName: _oldName,
+          newName: newName,
+          department:
+          widget.data['department']?.toString() ?? '',
+        );
+      }
+
+      // ========================================================
+      // SUCCESS
+      // ========================================================
+
+      if (!mounted) return;
+
+      /*
+       * IMPORTANT:
+       *
+       * Do NOT dispose _controller here.
+       * Do NOT show a SnackBar here.
+       *
+       * Just return the result to the parent.
+       */
+      Navigator.of(context).pop(true);
+
+    } catch (e) {
+      // ========================================================
+      // ERROR
+      // ========================================================
+
+      if (!mounted) return;
+
+      setState(() {
+        _loading = false;
+
+        _errorMessage = e
+            .toString()
+            .replaceFirst('Exception: ', '');
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Row(
+        children: [
+          Icon(
+            _icon,
+            color: Colors.lightBlue,
+          ),
+
+          const SizedBox(width: 10),
+
+          Expanded(
+            child: Text(_dialogTitle),
+          ),
+        ],
+      ),
+
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
+        children: [
+
+          TextField(
+            controller: _controller,
+
+            autofocus: true,
+
+            enabled: !_loading,
+
+            textCapitalization:
+            TextCapitalization.words,
+
+            decoration: InputDecoration(
+              labelText: _fieldLabel,
+
+              border:
+              const OutlineInputBorder(),
+
+              errorText: _errorMessage,
+            ),
+
+            onSubmitted: (_) {
+              if (!_loading) {
+                _save();
+              }
+            },
+          ),
+        ],
+      ),
+
+      actions: [
+
+        // ======================================================
+        // CANCEL
+        // ======================================================
+
+        TextButton(
+          onPressed: _loading
+              ? null
+              : () {
+            Navigator.of(context).pop(false);
+          },
+
+          child: const Text('Cancel'),
+        ),
+
+        // ======================================================
+        // SAVE
+        // ======================================================
+
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor:
+            Colors.lightBlue,
+
+            foregroundColor:
+            Colors.white,
+          ),
+
+          onPressed:
+          _loading ? null : _save,
+
+          child: _loading
+              ? const SizedBox(
+            width: 20,
+            height: 20,
+            child:
+            CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.white,
+            ),
+          )
+              : const Text('Save'),
+        ),
+      ],
+    );
   }
 }
