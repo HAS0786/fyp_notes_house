@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 class ContactUsScreen extends StatefulWidget {
   const ContactUsScreen({super.key});
 
@@ -8,22 +8,17 @@ class ContactUsScreen extends StatefulWidget {
 }
 
 class _ContactUsScreenState extends State<ContactUsScreen> {
-  final _messageCtrl = TextEditingController();
 
-  void _sendMessage() {
-    if (_messageCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a message')),
+  Future<void> _openLink(String value) async {
+    final uri = Uri.parse(value);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
       );
-      return;
     }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Message sent successfully')),
-    );
-    _messageCtrl.clear();
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,39 +32,44 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            _infoTile(Icons.email, 'Email', 'support@noteshouse.com'),
-            _infoTile(Icons.phone, 'Phone', '+92 300 1234567'),
-            _infoTile(Icons.web, 'Website', 'www.noteshouse.com'),
+            _infoTile(
+              Icons.email,
+              'Email',
+              'noteshouseapp@gmail.com',
+              'mailto:noteshouseapp@gmail.com',
+            ),
+
+            _infoTile(
+              Icons.phone,
+              'Phone',
+              '+92 300 1234567',
+              'tel:+923001234567',
+            ),
+
+            _infoTile(
+              Icons.web,
+              'Website',
+              'www.notes-house.vercel.app',
+              'https://www.notes-house.vercel.app',
+            ),
 
             const SizedBox(height: 24),
 
-            TextField(
-              controller: _messageCtrl,
-              maxLines: 4,
-              decoration: InputDecoration(
-                labelText: 'Your Message',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
 
             const SizedBox(height: 16),
 
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _sendMessage,
-                child: const Text('Send Message'),
-              ),
-            ),
-          ],
+            ]
         ),
       ),
     );
   }
 
-  Widget _infoTile(IconData icon, String title, String subtitle) {
+  Widget _infoTile(
+      IconData icon,
+      String title,
+      String subtitle,
+      String url,
+      ) {
     return Card(
       elevation: 1,
       margin: const EdgeInsets.symmetric(vertical: 6),

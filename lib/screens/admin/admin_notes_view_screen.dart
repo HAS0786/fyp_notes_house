@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fyp_ui_design/config.dart';
 import 'package:fyp_ui_design/screens/notes/allnotes/resourcesscreens/pdf_viewer_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 class AdminNotesViewScreen extends StatefulWidget {
   const AdminNotesViewScreen({super.key});
@@ -876,7 +879,75 @@ class _AdminNotesViewScreenState extends State<AdminNotesViewScreen> {
       ),
     );
   }
+// ============================================================
+// DELETE NOTE
+// ============================================================
 
+  Future<bool> deleteNote(String noteId) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        return false;
+      }
+
+      final token = await user.getIdToken();
+
+      final response = await http.delete(
+        Uri.parse("$baseUrl/delete-note/$noteId"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+      );
+
+      debugPrint("Delete response: ${response.statusCode}");
+      debugPrint(response.body);
+
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint("Delete note error: $e");
+      return false;
+    }
+  }
+
+// ============================================================
+// CONFIRM DELETE
+// ============================================================
+
+  Future<bool> confirmDelete(BuildContext context) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Delete Note"),
+          content: const Text(
+            "Are you sure you want to permanently delete this note?\n\n"
+                "This action cannot be undone.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: const Text(
+                "Delete",
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    return result ?? false;
+  }
   // ============================================================
   // NOTE CARD
   // ============================================================
@@ -1223,7 +1294,67 @@ class _AdminNotesViewScreenState extends State<AdminNotesViewScreen> {
                         itemCount: notes.length,
 
                         itemBuilder: (context, index) {
-                          return buildCard(context, notes[index]);
+                          final doc = notes[index];
+
+                          return Dismissible(
+                            key: ValueKey(doc.id),
+
+                            direction: DismissDirection.endToStart,
+
+                            background: Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.only(right: 24),
+
+                              alignment: Alignment.centerRight,
+
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+
+                              child: const Icon(
+                                Icons.delete,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            ),
+
+                            confirmDismiss: (direction) async {
+                              // Show confirmation first
+                              final confirmed = await confirmDelete(context);
+
+                              if (!confirmed) {
+                                return false;
+                              }
+
+                              // Call backend
+                              final success = await deleteNote(doc.id);
+
+                              if (!success) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("Failed to delete note"),
+                                    ),
+                                  );
+                                }
+
+                                return false;
+                              }
+
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Note deleted successfully"),
+                                  ),
+                                );
+                              }
+
+                              return true;
+                            },
+
+                            child: buildCard(context, doc),
+                          );
                         },
                       ),
                     ),

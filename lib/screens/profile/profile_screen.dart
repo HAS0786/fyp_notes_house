@@ -95,6 +95,104 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<bool> deleteAccount() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        return false;
+      }
+
+      final token = await user.getIdToken();
+
+      final response = await http.delete(
+        Uri.parse("$baseUrl/delete-account"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+      );
+
+      debugPrint("Delete account response: ${response.statusCode}");
+      debugPrint(response.body);
+
+      if (response.statusCode == 200) {
+        await FirebaseAuth.instance.signOut();
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      debugPrint("Delete account error: $e");
+      return false;
+    }
+  }
+
+  Future<void> handleDeleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Delete Account"),
+          content: const Text(
+            "Are you sure you want to permanently delete your account?\n\n"
+            "Your profile and personal data will be deleted. "
+            "This action cannot be undone.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                "Delete Account",
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    // Optional loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
+
+    final success = await deleteAccount();
+
+    if (!mounted) return;
+
+    Navigator.pop(context); // close loading dialog
+
+    if (success) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+
+      if (!mounted) return;
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const ChooseRoleScreen()),
+        (_) => false,
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Failed to delete account. Please try again."),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -203,6 +301,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }),
 
             _tile(Icons.logout, 'Log Out', _logout, color: Colors.red),
+            _tile(
+              Icons.delete_forever,
+              'Delete Account',
+              handleDeleteAccount,
+              color: Colors.red,
+            ),
           ],
         ),
       ),
