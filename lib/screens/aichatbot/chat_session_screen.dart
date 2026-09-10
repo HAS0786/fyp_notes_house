@@ -51,7 +51,7 @@ class _ChatSessionsScreenState extends State<ChatSessionsScreen> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("Chat deleted")));
     } else {
-      print(res.body); // 🔥 DEBUG
+      print(res.body); //  DEBUG
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("Delete failed")));
     }
@@ -110,7 +110,7 @@ class _ChatSessionsScreenState extends State<ChatSessionsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.lightBlue, // 🔥 same as app
+        backgroundColor: Colors.lightBlue, // same as app
         foregroundColor: Colors.white,
         elevation: 0,
         title: Row(
@@ -129,7 +129,7 @@ class _ChatSessionsScreenState extends State<ChatSessionsScreen> {
                   builder: (_) => AIChatScreen(),
                 ),
               );
-              loadSessions(); // 🔥 refresh list
+              loadSessions(); //  refresh list
             },
           ),
         ],

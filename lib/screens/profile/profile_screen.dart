@@ -12,7 +12,6 @@ import 'edit_profile_screen.dart';
 import '../roles_selection/chose_role_screen.dart';
 import 'package:http/http.dart' as http;
 
-
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -59,13 +58,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",
       },
-      body: jsonEncode({
-        "notificationsEnabled": isOn,
-      }),
+      body: jsonEncode({"notificationsEnabled": isOn}),
     );
 
     print("STATUS UPDATE RESPONSE: ${response.body}");
   }
+
   /// PICK PROFILE IMAGE
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -83,27 +81,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   /// LOGOUT
   Future<void> _logout() async {
-    // 🔥 CLEAR LOCAL CACHE
+    //  CLEAR LOCAL CACHE
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
 
-    // 🔐 SIGN OUT FROM FIREBASE
+    //  SIGN OUT FROM FIREBASE
     await FirebaseAuth.instance.signOut();
 
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const ChooseRoleScreen()),
-          (_) => false,
+      (_) => false,
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F8),
       appBar: AppBar(
-
         backgroundColor: Colors.lightBlue,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -113,7 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // 🔹 Profile Image
+            //  Profile Image
             Stack(
               children: [
                 CircleAvatar(
@@ -122,7 +118,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   backgroundImage: _imagePath != null
                       ? FileImage(File(_imagePath!))
                       : const AssetImage('assets/images/user.png')
-                  as ImageProvider,
+                            as ImageProvider,
                 ),
               ],
             ),
@@ -131,10 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             Text(
               _name,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
 
             if (_university.isNotEmpty)
@@ -180,7 +173,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 title: const Text('Notifications'),
 
-                // 🔥 YAHAN ARROW KI JAGAH SWITCH
                 trailing: Switch(
                   value: _notificationsOn,
                   // hoverColor: Colors.lightBlue,
@@ -210,12 +202,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               );
             }),
 
-            _tile(
-              Icons.logout,
-              'Log Out',
-              _logout,
-              color: Colors.red,
-            ),
+            _tile(Icons.logout, 'Log Out', _logout, color: Colors.red),
           ],
         ),
       ),
@@ -223,11 +210,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _tile(
-      IconData icon,
-      String title,
-      VoidCallback onTap, {
-        Color? color,
-      }) {
+    IconData icon,
+    String title,
+    VoidCallback onTap, {
+    Color? color,
+  }) {
     return Card(
       elevation: 1,
       margin: const EdgeInsets.symmetric(vertical: 6),
@@ -241,11 +228,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: Colors.lightBlue.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(
-            icon,
-            color: Colors.lightBlue,
-            size: 28,
-          ),
+          child: Icon(icon, color: Colors.lightBlue, size: 28),
         ),
         title: Text(title, style: TextStyle(color: color)),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),

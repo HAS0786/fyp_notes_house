@@ -43,8 +43,6 @@ class AdminNotesScreen extends StatelessWidget {
       return;
     }
 
-
-
     // Android / iOS
     Navigator.push(
       context,
@@ -199,10 +197,11 @@ class AdminNotesScreen extends StatelessWidget {
                     ),
                   ),
 
-                  onPressed: ()  {
-                final furl = note['fileUrl'];
-                final name = note['title'];
-                    openFile(context, furl,name);},
+                  onPressed: () {
+                    final furl = note['fileUrl'];
+                    final name = note['title'];
+                    openFile(context, furl, name);
+                  },
                   icon: const Icon(Icons.visibility),
                   label: const Text("View File / Notes"),
                 ),

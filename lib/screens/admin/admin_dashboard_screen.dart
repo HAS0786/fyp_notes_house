@@ -7,7 +7,6 @@ import 'package:fyp_ui_design/screens/admin/admin_notes_screen.dart';
 import 'package:fyp_ui_design/screens/admin/admin_quiz_view_screen.dart';
 import 'package:fyp_ui_design/screens/admin/admin_teacher_approval_screen.dart';
 import 'package:fyp_ui_design/screens/notes/uploadnotes/upload_notes_screen.dart';
-import 'package:fyp_ui_design/screens/quiz/quiz_upload/create_mcq_screen.dart';
 import 'package:fyp_ui_design/screens/quiz/teacher/screen_selection.dart';
 
 class AdminDashboard extends StatelessWidget {
@@ -431,22 +430,19 @@ class AdminDashboard extends StatelessWidget {
                     academic.showAddDepartment(context);
                   } else if (action.$5 == "Add Course") {
                     academic.showAddCourse(context);
-                  }else if (action.$5 == "Upload Note") {
+                  } else if (action.$5 == "Upload Note") {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => UploadNoteScreen(),
-                      ),
+                      MaterialPageRoute(builder: (_) => UploadNoteScreen()),
                     );
-                  }else if (action.$5 == "Upload Quiz") {
+                  } else if (action.$5 == "Upload Quiz") {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => const TeacherScreenSelection(),
                       ),
                     );
-                  }
-                  else {
+                  } else {
                     _showComingSoon(context, action.$5);
                   }
                 },

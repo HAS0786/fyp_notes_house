@@ -6,22 +6,17 @@ class AdminQuizViewScreen extends StatefulWidget {
   const AdminQuizViewScreen({super.key});
 
   @override
-  State<AdminQuizViewScreen> createState() =>
-      _AdminQuizViewScreenState();
+  State<AdminQuizViewScreen> createState() => _AdminQuizViewScreenState();
 }
 
-class _AdminQuizViewScreenState
-    extends State<AdminQuizViewScreen> {
-
+class _AdminQuizViewScreenState extends State<AdminQuizViewScreen> {
   // ============================================================
   // SEARCH
   // ============================================================
 
-  final TextEditingController _searchController =
-  TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
-  final FocusNode _searchFocusNode =
-  FocusNode();
+  final FocusNode _searchFocusNode = FocusNode();
 
   // ============================================================
   // FILTER STATE
@@ -54,14 +49,8 @@ class _AdminQuizViewScreenState
   // SEARCH
   // ============================================================
 
-  bool _matchesSearch(
-      Map<String, dynamic> quiz,
-      ) {
-
-    final search =
-    _searchController.text
-        .trim()
-        .toLowerCase();
+  bool _matchesSearch(Map<String, dynamic> quiz) {
+    final search = _searchController.text.trim().toLowerCase();
 
     if (search.isEmpty) {
       return true;
@@ -76,8 +65,7 @@ class _AdminQuizViewScreenState
     ];
 
     return searchableValues.any(
-          (value) =>
-          value.toLowerCase().contains(search),
+      (value) => value.toLowerCase().contains(search),
     );
   }
 
@@ -85,121 +73,80 @@ class _AdminQuizViewScreenState
   // UNIVERSITY
   // ============================================================
 
-  bool _matchesUniversity(
-      Map<String, dynamic> quiz,
-      ) {
-
-    if (selectedUniversity ==
-        'All Universities') {
+  bool _matchesUniversity(Map<String, dynamic> quiz) {
+    if (selectedUniversity == 'All Universities') {
       return true;
     }
 
-    return quiz['university']
-        ?.toString() ==
-        selectedUniversity;
+    return quiz['university']?.toString() == selectedUniversity;
   }
 
   // ============================================================
   // LOCATION
   // ============================================================
 
-  bool _matchesLocation(
-      Map<String, dynamic> quiz,
-      ) {
-
-    if (selectedLocation ==
-        'All Locations') {
+  bool _matchesLocation(Map<String, dynamic> quiz) {
+    if (selectedLocation == 'All Locations') {
       return true;
     }
 
-    return quiz['location']
-        ?.toString() ==
-        selectedLocation;
+    return quiz['location']?.toString() == selectedLocation;
   }
 
   // ============================================================
   // DEPARTMENT
   // ============================================================
 
-  bool _matchesDepartment(
-      Map<String, dynamic> quiz,
-      ) {
-
-    if (selectedDepartment ==
-        'All Departments') {
+  bool _matchesDepartment(Map<String, dynamic> quiz) {
+    if (selectedDepartment == 'All Departments') {
       return true;
     }
 
-    return quiz['department']
-        ?.toString() ==
-        selectedDepartment;
+    return quiz['department']?.toString() == selectedDepartment;
   }
 
   // ============================================================
   // SEMESTER
   // ============================================================
 
-  bool _matchesSemester(
-      Map<String, dynamic> quiz,
-      ) {
-
-    if (selectedSemester ==
-        'All Semesters') {
+  bool _matchesSemester(Map<String, dynamic> quiz) {
+    if (selectedSemester == 'All Semesters') {
       return true;
     }
 
-    final semester =
-    selectedSemester.replaceFirst(
-      'Semester ',
-      '',
-    );
+    final semester = selectedSemester.replaceFirst('Semester ', '');
 
-    return quiz['semester']
-        ?.toString() ==
-        semester;
+    return quiz['semester']?.toString() == semester;
   }
 
   // ============================================================
   // TEACHER
   // ============================================================
 
-  bool _matchesTeacher(
-      Map<String, dynamic> quiz,
-      ) {
-
-    if (selectedTeacher ==
-        'All Teachers') {
+  bool _matchesTeacher(Map<String, dynamic> quiz) {
+    if (selectedTeacher == 'All Teachers') {
       return true;
     }
 
-    return quiz['teacherName']
-        ?.toString() ==
-        selectedTeacher;
+    return quiz['teacherName']?.toString() == selectedTeacher;
   }
 
   // ============================================================
   // VISIBILITY
   // ============================================================
 
-  bool _matchesVisibility(
-      Map<String, dynamic> quiz,
-      ) {
-
-    if (selectedVisibility ==
-        'All Visibility') {
+  bool _matchesVisibility(Map<String, dynamic> quiz) {
+    if (selectedVisibility == 'All Visibility') {
       return true;
     }
 
-    final isPublic =
-        quiz['isPublic'] == true;
+    final isPublic = quiz['isPublic'] == true;
 
-    if (selectedVisibility ==
-        'Public') {
+    if (selectedVisibility == 'Public') {
       return isPublic;
     }
 
-    if (selectedVisibility ==
-        'Private') {
+    if (selectedVisibility == 'Private') {
       return !isPublic;
     }
 
@@ -210,82 +157,50 @@ class _AdminQuizViewScreenState
   // DATE
   // ============================================================
 
-  bool _matchesDate(
-      Map<String, dynamic> quiz,
-      ) {
-
-    if (selectedDateFilter ==
-        'All Dates') {
+  bool _matchesDate(Map<String, dynamic> quiz) {
+    if (selectedDateFilter == 'All Dates') {
       return true;
     }
 
-    final createdAt =
-    quiz['createdAt'];
+    final createdAt = quiz['createdAt'];
 
     if (createdAt is! Timestamp) {
       return false;
     }
 
-    final date =
-    createdAt.toDate();
+    final date = createdAt.toDate();
 
-    final dateOnly = DateTime(
-      date.year,
-      date.month,
-      date.day,
-    );
+    final dateOnly = DateTime(date.year, date.month, date.day);
 
-    final now =
-    DateTime.now();
+    final now = DateTime.now();
 
-    final today = DateTime(
-      now.year,
-      now.month,
-      now.day,
-    );
+    final today = DateTime(now.year, now.month, now.day);
 
     switch (selectedDateFilter) {
-
       case 'Today':
         return dateOnly == today;
 
       case 'Yesterday':
-
-        final yesterday =
-        today.subtract(
-          const Duration(days: 1),
-        );
+        final yesterday = today.subtract(const Duration(days: 1));
 
         return dateOnly == yesterday;
 
       case 'Last 7 Days':
+        final start = today.subtract(const Duration(days: 6));
 
-        final start =
-        today.subtract(
-          const Duration(days: 6),
-        );
-
-        return !dateOnly.isBefore(start) &&
-            !dateOnly.isAfter(today);
+        return !dateOnly.isBefore(start) && !dateOnly.isAfter(today);
 
       case 'Last 28 Days':
+        final start = today.subtract(const Duration(days: 27));
 
-        final start =
-        today.subtract(
-          const Duration(days: 27),
-        );
-
-        return !dateOnly.isBefore(start) &&
-            !dateOnly.isAfter(today);
+        return !dateOnly.isBefore(start) && !dateOnly.isAfter(today);
 
       case 'Custom Date':
-
         if (selectedDate == null) {
           return true;
         }
 
-        final selected =
-        DateTime(
+        final selected = DateTime(
           selectedDate!.year,
           selectedDate!.month,
           selectedDate!.day,
@@ -294,28 +209,23 @@ class _AdminQuizViewScreenState
         return dateOnly == selected;
 
       case 'Custom Range':
-
-        if (customStartDate == null ||
-            customEndDate == null) {
+        if (customStartDate == null || customEndDate == null) {
           return true;
         }
 
-        final start =
-        DateTime(
+        final start = DateTime(
           customStartDate!.year,
           customStartDate!.month,
           customStartDate!.day,
         );
 
-        final end =
-        DateTime(
+        final end = DateTime(
           customEndDate!.year,
           customEndDate!.month,
           customEndDate!.day,
         );
 
-        return !dateOnly.isBefore(start) &&
-            !dateOnly.isAfter(end);
+        return !dateOnly.isBefore(start) && !dateOnly.isAfter(end);
 
       default:
         return true;
@@ -326,10 +236,7 @@ class _AdminQuizViewScreenState
   // ALL FILTERS
   // ============================================================
 
-  bool _matchesAllFilters(
-      Map<String, dynamic> quiz,
-      ) {
-
+  bool _matchesAllFilters(Map<String, dynamic> quiz) {
     return _matchesSearch(quiz) &&
         _matchesUniversity(quiz) &&
         _matchesLocation(quiz) &&
@@ -345,19 +252,12 @@ class _AdminQuizViewScreenState
   // ============================================================
 
   Future<void> _selectCustomDate() async {
-
-    final picked =
-    await showDatePicker(
+    final picked = await showDatePicker(
       context: context,
-      initialDate:
-      selectedDate ??
-          DateTime.now(),
-      firstDate:
-      DateTime(2020),
-      lastDate:
-      DateTime.now(),
-      helpText:
-      'Select Quiz Date',
+      initialDate: selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      helpText: 'Select Quiz Date',
     );
 
     if (picked == null) {
@@ -365,18 +265,13 @@ class _AdminQuizViewScreenState
     }
 
     setState(() {
+      selectedDateFilter = 'Custom Date';
 
-      selectedDateFilter =
-      'Custom Date';
+      selectedDate = picked;
 
-      selectedDate =
-          picked;
+      customStartDate = null;
 
-      customStartDate =
-      null;
-
-      customEndDate =
-      null;
+      customEndDate = null;
     });
   }
 
@@ -385,18 +280,12 @@ class _AdminQuizViewScreenState
   // ============================================================
 
   Future<void> _selectCustomRange() async {
-
-    final picked =
-    await showDateRangePicker(
+    final picked = await showDateRangePicker(
       context: context,
-      firstDate:
-      DateTime(2020),
-      lastDate:
-      DateTime.now(),
-      helpText:
-      'Select Quiz Date Range',
-      saveText:
-      'Apply',
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      helpText: 'Select Quiz Date Range',
+      saveText: 'Apply',
     );
 
     if (picked == null) {
@@ -404,18 +293,13 @@ class _AdminQuizViewScreenState
     }
 
     setState(() {
+      selectedDateFilter = 'Custom Range';
 
-      selectedDateFilter =
-      'Custom Range';
+      customStartDate = picked.start;
 
-      customStartDate =
-          picked.start;
+      customEndDate = picked.end;
 
-      customEndDate =
-          picked.end;
-
-      selectedDate =
-      null;
+      selectedDate = null;
     });
   }
 
@@ -424,87 +308,42 @@ class _AdminQuizViewScreenState
   // ============================================================
 
   Future<void> _selectDateFilter() async {
-
-    final result =
-    await showModalBottomSheet<String>(
+    final result = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      backgroundColor:
-      Colors.white,
-      barrierColor:
-      Colors.black54,
-      shape:
-      const RoundedRectangleBorder(
-        borderRadius:
-        BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+      backgroundColor: Colors.white,
+      barrierColor: Colors.black54,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-
         return SafeArea(
           child: ListView(
             shrinkWrap: true,
             children: [
-
               const Padding(
-                padding:
-                EdgeInsets.all(18),
+                padding: EdgeInsets.all(18),
                 child: Text(
                   'Filter by Date',
-                  style: TextStyle(
-                    fontSize: 19,
-                    fontWeight:
-                    FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
                 ),
               ),
 
-              _dateOption(
-                context,
-                'All Dates',
-                Icons.history,
-              ),
+              _dateOption(context, 'All Dates', Icons.history),
 
-              _dateOption(
-                context,
-                'Today',
-                Icons.today,
-              ),
+              _dateOption(context, 'Today', Icons.today),
 
-              _dateOption(
-                context,
-                'Yesterday',
-                Icons.event,
-              ),
+              _dateOption(context, 'Yesterday', Icons.event),
 
-              _dateOption(
-                context,
-                'Last 7 Days',
-                Icons.date_range,
-              ),
+              _dateOption(context, 'Last 7 Days', Icons.date_range),
 
-              _dateOption(
-                context,
-                'Last 28 Days',
-                Icons.calendar_month,
-              ),
+              _dateOption(context, 'Last 28 Days', Icons.calendar_month),
 
-              _dateOption(
-                context,
-                'Custom Date',
-                Icons.calendar_today,
-              ),
+              _dateOption(context, 'Custom Date', Icons.calendar_today),
 
-              _dateOption(
-                context,
-                'Custom Range',
-                Icons.date_range_outlined,
-              ),
+              _dateOption(context, 'Custom Range', Icons.date_range_outlined),
 
-              const SizedBox(
-                height: 10,
-              ),
+              const SizedBox(height: 10),
             ],
           ),
         );
@@ -515,33 +354,24 @@ class _AdminQuizViewScreenState
       return;
     }
 
-    if (result ==
-        'Custom Date') {
-
+    if (result == 'Custom Date') {
       await _selectCustomDate();
       return;
     }
 
-    if (result ==
-        'Custom Range') {
-
+    if (result == 'Custom Range') {
       await _selectCustomRange();
       return;
     }
 
     setState(() {
+      selectedDateFilter = result;
 
-      selectedDateFilter =
-          result;
+      selectedDate = null;
 
-      selectedDate =
-      null;
+      customStartDate = null;
 
-      customStartDate =
-      null;
-
-      customEndDate =
-      null;
+      customEndDate = null;
     });
   }
 
@@ -549,40 +379,18 @@ class _AdminQuizViewScreenState
   // DATE OPTION
   // ============================================================
 
-  Widget _dateOption(
-      BuildContext context,
-      String title,
-      IconData icon,
-      ) {
-
+  Widget _dateOption(BuildContext context, String title, IconData icon) {
     return ListTile(
+      leading: Icon(icon, color: Colors.lightBlue),
 
-      leading:
-      Icon(
-        icon,
-        color:
-        Colors.lightBlue,
-      ),
+      title: Text(title),
 
-      title:
-      Text(title),
-
-      trailing:
-      selectedDateFilter ==
-          title
-          ? const Icon(
-        Icons.check,
-        color:
-        Colors.lightBlue,
-      )
+      trailing: selectedDateFilter == title
+          ? const Icon(Icons.check, color: Colors.lightBlue)
           : null,
 
       onTap: () {
-
-        Navigator.pop(
-          context,
-          title,
-        );
+        Navigator.pop(context, title);
       },
     );
   }
@@ -592,94 +400,55 @@ class _AdminQuizViewScreenState
   // ============================================================
 
   Future<void> _selectSimpleFilter(
-      String filterType,
-      List<String> options,
-      ) async {
-
-    final result =
-    await showModalBottomSheet<String>(
+    String filterType,
+    List<String> options,
+  ) async {
+    final result = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      backgroundColor:
-      Colors.white,
-      barrierColor:
-      Colors.black54,
-      shape:
-      const RoundedRectangleBorder(
-        borderRadius:
-        BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+      backgroundColor: Colors.white,
+      barrierColor: Colors.black54,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-
         return SafeArea(
           child: ListView(
             shrinkWrap: true,
             children: [
-
               Padding(
-                padding:
-                const EdgeInsets.all(
-                  18,
-                ),
+                padding: const EdgeInsets.all(18),
                 child: Text(
                   'Filter by $filterType',
-                  style:
-                  const TextStyle(
+                  style: const TextStyle(
                     fontSize: 19,
-                    fontWeight:
-                    FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
 
-              ...options.map(
-                    (option) {
+              ...options.map((option) {
+                final selected = _getCurrentFilter(filterType) == option;
 
-                  final selected =
-                      _getCurrentFilter(
-                        filterType,
-                      ) ==
-                          option;
+                return ListTile(
+                  leading: Icon(
+                    _getFilterIcon(filterType),
+                    color: Colors.lightBlue,
+                  ),
 
-                  return ListTile(
+                  title: Text(option),
 
-                    leading:
-                    Icon(
-                      _getFilterIcon(
-                        filterType,
-                      ),
-                      color:
-                      Colors.lightBlue,
-                    ),
+                  trailing: selected
+                      ? const Icon(Icons.check, color: Colors.lightBlue)
+                      : null,
 
-                    title:
-                    Text(option),
+                  onTap: () {
+                    Navigator.pop(context, option);
+                  },
+                );
+              }),
 
-                    trailing:
-                    selected
-                        ? const Icon(
-                      Icons.check,
-                      color:
-                      Colors.lightBlue,
-                    )
-                        : null,
-
-                    onTap: () {
-
-                      Navigator.pop(
-                        context,
-                        option,
-                      );
-                    },
-                  );
-                },
-              ),
-
-              const SizedBox(
-                height: 10,
-              ),
+              const SizedBox(height: 10),
             ],
           ),
         );
@@ -691,37 +460,29 @@ class _AdminQuizViewScreenState
     }
 
     setState(() {
-
       switch (filterType) {
-
         case 'University':
-          selectedUniversity =
-              result;
+          selectedUniversity = result;
           break;
 
         case 'Location':
-          selectedLocation =
-              result;
+          selectedLocation = result;
           break;
 
         case 'Department':
-          selectedDepartment =
-              result;
+          selectedDepartment = result;
           break;
 
         case 'Semester':
-          selectedSemester =
-              result;
+          selectedSemester = result;
           break;
 
         case 'Teacher':
-          selectedTeacher =
-              result;
+          selectedTeacher = result;
           break;
 
         case 'Visibility':
-          selectedVisibility =
-              result;
+          selectedVisibility = result;
           break;
       }
     });
@@ -731,12 +492,8 @@ class _AdminQuizViewScreenState
   // CURRENT FILTER
   // ============================================================
 
-  String _getCurrentFilter(
-      String filterType,
-      ) {
-
+  String _getCurrentFilter(String filterType) {
     switch (filterType) {
-
       case 'University':
         return selectedUniversity;
 
@@ -764,12 +521,8 @@ class _AdminQuizViewScreenState
   // FILTER ICON
   // ============================================================
 
-  IconData _getFilterIcon(
-      String filterType,
-      ) {
-
+  IconData _getFilterIcon(String filterType) {
     switch (filterType) {
-
       case 'University':
         return Icons.school_outlined;
 
@@ -798,281 +551,142 @@ class _AdminQuizViewScreenState
   // ============================================================
 
   List<String> _getOptions(
-      List<QueryDocumentSnapshot> docs,
-      String field,
-      String allLabel,
-      ) {
-
+    List<QueryDocumentSnapshot> docs,
+    String field,
+    String allLabel,
+  ) {
     final Set<String> values = {};
 
     for (final doc in docs) {
+      final data = doc.data() as Map<String, dynamic>;
 
-      final data =
-      doc.data()
-      as Map<String, dynamic>;
+      final value = data[field];
 
-      final value =
-      data[field];
-
-      if (value != null &&
-          value.toString()
-              .trim()
-              .isNotEmpty) {
-
-        values.add(
-          value.toString(),
-        );
+      if (value != null && value.toString().trim().isNotEmpty) {
+        values.add(value.toString());
       }
     }
 
-    final result =
-    values.toList()
-      ..sort();
+    final result = values.toList()..sort();
 
-    return [
-      allLabel,
-      ...result,
-    ];
+    return [allLabel, ...result];
   }
 
   // ============================================================
   // SEMESTER OPTIONS
   // ============================================================
 
-  List<String> _getSemesterOptions(
-      List<QueryDocumentSnapshot> docs,
-      ) {
-
+  List<String> _getSemesterOptions(List<QueryDocumentSnapshot> docs) {
     final Set<String> values = {};
 
     for (final doc in docs) {
+      final data = doc.data() as Map<String, dynamic>;
 
-      final data =
-      doc.data()
-      as Map<String, dynamic>;
-
-      final value =
-      data['semester'];
+      final value = data['semester'];
 
       if (value != null) {
-
-        values.add(
-          value.toString(),
-        );
+        values.add(value.toString());
       }
     }
 
-    final result =
-    values.toList();
+    final result = values.toList();
 
     result.sort(
-          (a, b) =>
-          (int.tryParse(a) ?? 0)
-              .compareTo(
-            int.tryParse(b) ?? 0,
-          ),
+      (a, b) => (int.tryParse(a) ?? 0).compareTo(int.tryParse(b) ?? 0),
     );
 
-    return [
-      'All Semesters',
-      ...result.map(
-            (e) => 'Semester $e',
-      ),
-    ];
+    return ['All Semesters', ...result.map((e) => 'Semester $e')];
   }
 
   // ============================================================
   // FILTER MENU
   // ============================================================
 
-  Future<void> _openFilterMenu(
-      List<QueryDocumentSnapshot> docs,
-      ) async {
-
+  Future<void> _openFilterMenu(List<QueryDocumentSnapshot> docs) async {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor:
-      Colors.white,
-      barrierColor:
-      Colors.black54,
-      shape:
-      const RoundedRectangleBorder(
-        borderRadius:
-        BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+      backgroundColor: Colors.white,
+      barrierColor: Colors.black54,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-
         return SafeArea(
           child: ConstrainedBox(
-            constraints:
-            BoxConstraints(
-              maxHeight:
-              MediaQuery.of(context)
-                  .size
-                  .height *
-                  0.75,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.75,
             ),
             child: ListView(
               shrinkWrap: true,
               children: [
-
                 const Padding(
-                  padding:
-                  EdgeInsets.all(18),
+                  padding: EdgeInsets.all(18),
                   child: Text(
                     'Filter Quizzes',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight:
-                      FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
 
-                _filterMenuItem(
-                  context,
-                  'University',
-                  selectedUniversity,
-                      () {
+                _filterMenuItem(context, 'University', selectedUniversity, () {
+                  Navigator.pop(context);
 
-                    Navigator.pop(
-                      context,
-                    );
+                  _selectSimpleFilter(
+                    'University',
+                    _getOptions(docs, 'university', 'All Universities'),
+                  );
+                }),
 
-                    _selectSimpleFilter(
-                      'University',
-                      _getOptions(
-                        docs,
-                        'university',
-                        'All Universities',
-                      ),
-                    );
-                  },
-                ),
+                _filterMenuItem(context, 'Location', selectedLocation, () {
+                  Navigator.pop(context);
 
-                _filterMenuItem(
-                  context,
-                  'Location',
-                  selectedLocation,
-                      () {
+                  _selectSimpleFilter(
+                    'Location',
+                    _getOptions(docs, 'location', 'All Locations'),
+                  );
+                }),
 
-                    Navigator.pop(
-                      context,
-                    );
+                _filterMenuItem(context, 'Department', selectedDepartment, () {
+                  Navigator.pop(context);
 
-                    _selectSimpleFilter(
-                      'Location',
-                      _getOptions(
-                        docs,
-                        'location',
-                        'All Locations',
-                      ),
-                    );
-                  },
-                ),
+                  _selectSimpleFilter(
+                    'Department',
+                    _getOptions(docs, 'department', 'All Departments'),
+                  );
+                }),
 
-                _filterMenuItem(
-                  context,
-                  'Department',
-                  selectedDepartment,
-                      () {
+                _filterMenuItem(context, 'Semester', selectedSemester, () {
+                  Navigator.pop(context);
 
-                    Navigator.pop(
-                      context,
-                    );
+                  _selectSimpleFilter('Semester', _getSemesterOptions(docs));
+                }),
 
-                    _selectSimpleFilter(
-                      'Department',
-                      _getOptions(
-                        docs,
-                        'department',
-                        'All Departments',
-                      ),
-                    );
-                  },
-                ),
+                _filterMenuItem(context, 'Teacher', selectedTeacher, () {
+                  Navigator.pop(context);
 
-                _filterMenuItem(
-                  context,
-                  'Semester',
-                  selectedSemester,
-                      () {
+                  _selectSimpleFilter(
+                    'Teacher',
+                    _getOptions(docs, 'teacherName', 'All Teachers'),
+                  );
+                }),
 
-                    Navigator.pop(
-                      context,
-                    );
+                _filterMenuItem(context, 'Visibility', selectedVisibility, () {
+                  Navigator.pop(context);
 
-                    _selectSimpleFilter(
-                      'Semester',
-                      _getSemesterOptions(
-                        docs,
-                      ),
-                    );
-                  },
-                ),
+                  _selectSimpleFilter('Visibility', const [
+                    'All Visibility',
+                    'Public',
+                    'Private',
+                  ]);
+                }),
 
-                _filterMenuItem(
-                  context,
-                  'Teacher',
-                  selectedTeacher,
-                      () {
+                _filterMenuItem(context, 'Date', _getDateLabel(), () {
+                  Navigator.pop(context);
 
-                    Navigator.pop(
-                      context,
-                    );
+                  _selectDateFilter();
+                }),
 
-                    _selectSimpleFilter(
-                      'Teacher',
-                      _getOptions(
-                        docs,
-                        'teacherName',
-                        'All Teachers',
-                      ),
-                    );
-                  },
-                ),
-
-                _filterMenuItem(
-                  context,
-                  'Visibility',
-                  selectedVisibility,
-                      () {
-
-                    Navigator.pop(
-                      context,
-                    );
-
-                    _selectSimpleFilter(
-                      'Visibility',
-                      const [
-                        'All Visibility',
-                        'Public',
-                        'Private',
-                      ],
-                    );
-                  },
-                ),
-
-                _filterMenuItem(
-                  context,
-                  'Date',
-                  _getDateLabel(),
-                      () {
-
-                    Navigator.pop(
-                      context,
-                    );
-
-                    _selectDateFilter();
-                  },
-                ),
-
-                const SizedBox(
-                  height: 12,
-                ),
+                const SizedBox(height: 12),
               ],
             ),
           ),
@@ -1086,39 +700,21 @@ class _AdminQuizViewScreenState
   // ============================================================
 
   Widget _filterMenuItem(
-      BuildContext context,
-      String title,
-      String value,
-      VoidCallback onTap,
-      ) {
-
+    BuildContext context,
+    String title,
+    String value,
+    VoidCallback onTap,
+  ) {
     return ListTile(
+      leading: Icon(_getFilterIcon(title), color: Colors.lightBlue),
 
-      leading:
-      Icon(
-        _getFilterIcon(title),
-        color:
-        Colors.lightBlue,
-      ),
+      title: Text(title),
 
-      title:
-      Text(title),
+      subtitle: Text(value, maxLines: 1, overflow: TextOverflow.ellipsis),
 
-      subtitle:
-      Text(
-        value,
-        maxLines: 1,
-        overflow:
-        TextOverflow.ellipsis,
-      ),
+      trailing: const Icon(Icons.chevron_right),
 
-      trailing:
-      const Icon(
-        Icons.chevron_right,
-      ),
-
-      onTap:
-      onTap,
+      onTap: onTap,
     );
   }
 
@@ -1127,30 +723,22 @@ class _AdminQuizViewScreenState
   // ============================================================
 
   String _getDateLabel() {
-
-    if (selectedDateFilter ==
-        'Custom Date' &&
-        selectedDate != null) {
-
-      return
-        '${selectedDate!.day}/'
-            '${selectedDate!.month}/'
-            '${selectedDate!.year}';
+    if (selectedDateFilter == 'Custom Date' && selectedDate != null) {
+      return '${selectedDate!.day}/'
+          '${selectedDate!.month}/'
+          '${selectedDate!.year}';
     }
 
-    if (selectedDateFilter ==
-        'Custom Range' &&
+    if (selectedDateFilter == 'Custom Range' &&
         customStartDate != null &&
         customEndDate != null) {
-
-      return
-        '${customStartDate!.day}/'
-            '${customStartDate!.month}/'
-            '${customStartDate!.year}'
-            ' - '
-            '${customEndDate!.day}/'
-            '${customEndDate!.month}/'
-            '${customEndDate!.year}';
+      return '${customStartDate!.day}/'
+          '${customStartDate!.month}/'
+          '${customStartDate!.year}'
+          ' - '
+          '${customEndDate!.day}/'
+          '${customEndDate!.month}/'
+          '${customEndDate!.year}';
     }
 
     return selectedDateFilter;
@@ -1161,47 +749,37 @@ class _AdminQuizViewScreenState
   // ============================================================
 
   int _activeFilterCount() {
-
     int count = 0;
 
-    if (_searchController.text
-        .trim()
-        .isNotEmpty) {
+    if (_searchController.text.trim().isNotEmpty) {
       count++;
     }
 
-    if (selectedUniversity !=
-        'All Universities') {
+    if (selectedUniversity != 'All Universities') {
       count++;
     }
 
-    if (selectedLocation !=
-        'All Locations') {
+    if (selectedLocation != 'All Locations') {
       count++;
     }
 
-    if (selectedDepartment !=
-        'All Departments') {
+    if (selectedDepartment != 'All Departments') {
       count++;
     }
 
-    if (selectedSemester !=
-        'All Semesters') {
+    if (selectedSemester != 'All Semesters') {
       count++;
     }
 
-    if (selectedTeacher !=
-        'All Teachers') {
+    if (selectedTeacher != 'All Teachers') {
       count++;
     }
 
-    if (selectedVisibility !=
-        'All Visibility') {
+    if (selectedVisibility != 'All Visibility') {
       count++;
     }
 
-    if (selectedDateFilter !=
-        'All Dates') {
+    if (selectedDateFilter != 'All Dates') {
       count++;
     }
 
@@ -1213,40 +791,28 @@ class _AdminQuizViewScreenState
   // ============================================================
 
   void _clearAllFilters() {
-
     _searchController.clear();
 
     setState(() {
+      selectedUniversity = 'All Universities';
 
-      selectedUniversity =
-      'All Universities';
+      selectedLocation = 'All Locations';
 
-      selectedLocation =
-      'All Locations';
+      selectedDepartment = 'All Departments';
 
-      selectedDepartment =
-      'All Departments';
+      selectedSemester = 'All Semesters';
 
-      selectedSemester =
-      'All Semesters';
+      selectedTeacher = 'All Teachers';
 
-      selectedTeacher =
-      'All Teachers';
+      selectedVisibility = 'All Visibility';
 
-      selectedVisibility =
-      'All Visibility';
+      selectedDateFilter = 'All Dates';
 
-      selectedDateFilter =
-      'All Dates';
+      selectedDate = null;
 
-      selectedDate =
-      null;
+      customStartDate = null;
 
-      customStartDate =
-      null;
-
-      customEndDate =
-      null;
+      customEndDate = null;
     });
 
     _searchFocusNode.requestFocus();
@@ -1256,40 +822,17 @@ class _AdminQuizViewScreenState
   // INFO ROW
   // ============================================================
 
-  Widget buildInfoRow(
-      IconData icon,
-      String text,
-      ) {
-
+  Widget buildInfoRow(IconData icon, String text) {
     return Padding(
-      padding:
-      const EdgeInsets.only(
-        bottom: 6,
-      ),
+      padding: const EdgeInsets.only(bottom: 6),
 
       child: Row(
         children: [
+          Icon(icon, size: 16, color: Colors.grey),
 
-          Icon(
-            icon,
-            size: 16,
-            color:
-            Colors.grey,
-          ),
+          const SizedBox(width: 7),
 
-          const SizedBox(
-            width: 7,
-          ),
-
-          Expanded(
-            child: Text(
-              text,
-              style:
-              const TextStyle(
-                fontSize: 13,
-              ),
-            ),
-          ),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 13))),
         ],
       ),
     );
@@ -1299,110 +842,72 @@ class _AdminQuizViewScreenState
   // QUIZ CARD
   // ============================================================
 
-  Widget buildQuizCard(
-      BuildContext context,
-      DocumentSnapshot doc,
-      ) {
+  Widget buildQuizCard(BuildContext context, DocumentSnapshot doc) {
+    final quiz = doc.data() as Map<String, dynamic>;
 
-    final quiz =
-    doc.data()
-    as Map<String, dynamic>;
-
-    final questions =
-        quiz['questions']
-        as List? ??
-            [];
+    final questions = quiz['questions'] as List? ?? [];
 
     String createdDate = '';
 
-    final createdAt =
-    quiz['createdAt'];
+    final createdAt = quiz['createdAt'];
 
     if (createdAt is Timestamp) {
-
-      final date =
-      createdAt.toDate();
+      final date = createdAt.toDate();
 
       createdDate =
-      '${date.day}/${date.month}/${date.year}'
+          '${date.day}/${date.month}/${date.year}'
           ' • '
           '${date.hour}:'
           '${date.minute.toString().padLeft(2, '0')}';
     }
 
-    final isPublic =
-        quiz['isPublic'] == true;
+    final isPublic = quiz['isPublic'] == true;
 
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
 
-      margin:
-      const EdgeInsets.only(
-        bottom: 12,
-      ),
+      padding: const EdgeInsets.all(16),
 
-      padding:
-      const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
 
-      decoration:
-      BoxDecoration(
-        color:
-        Colors.white,
-
-        borderRadius:
-        BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16),
 
         boxShadow: [
           BoxShadow(
-            color:
-            Colors.black.withOpacity(
-              0.05,
-            ),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 8,
-            offset:
-            const Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
 
       child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
 
         children: [
-
           // SUBJECT
           Text(
-            quiz['subject'] ??
-                'Untitled Quiz',
+            quiz['subject'] ?? 'Untitled Quiz',
 
-            style:
-            const TextStyle(
-              fontSize: 16,
-              fontWeight:
-              FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
 
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
 
           buildInfoRow(
             Icons.school,
-            quiz['university'] ??
-                'Unknown University',
+            quiz['university'] ?? 'Unknown University',
           ),
 
           buildInfoRow(
             Icons.location_on,
-            quiz['location'] ??
-                'Unknown Location',
+            quiz['location'] ?? 'Unknown Location',
           ),
 
           buildInfoRow(
             Icons.domain,
-            quiz['department'] ??
-                'Unknown Department',
+            quiz['department'] ?? 'Unknown Department',
           ),
 
           buildInfoRow(
@@ -1415,74 +920,41 @@ class _AdminQuizViewScreenState
             "Teacher: ${quiz['teacherName'] ?? 'Unknown'}",
           ),
 
-          buildInfoRow(
-            Icons.quiz,
-            "${questions.length} Questions",
-          ),
+          buildInfoRow(Icons.quiz, "${questions.length} Questions"),
 
           buildInfoRow(
-            isPublic
-                ? Icons.public
-                : Icons.lock_outline,
-            isPublic
-                ? "Visibility: Public"
-                : "Visibility: Private",
+            isPublic ? Icons.public : Icons.lock_outline,
+            isPublic ? "Visibility: Public" : "Visibility: Private",
           ),
 
           if (createdDate.isNotEmpty)
-            buildInfoRow(
-              Icons.calendar_today,
-              createdDate,
-            ),
+            buildInfoRow(Icons.calendar_today, createdDate),
 
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
 
           // VIEW QUIZ
           SizedBox(
-            width:
-            double.infinity,
+            width: double.infinity,
 
-            child:
-            ElevatedButton.icon(
-
-              style:
-              ElevatedButton.styleFrom(
-                backgroundColor:
-                Colors.lightBlue,
-                foregroundColor:
-                Colors.white,
-                padding:
-                const EdgeInsets
-                    .symmetric(
-                  vertical: 12,
-                ),
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.lightBlue,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
               ),
 
               onPressed: () {
-
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) =>
-                        QuizViewerScreen(
-                          questions:
-                          questions,
-                        ),
+                    builder: (_) => QuizViewerScreen(questions: questions),
                   ),
                 );
               },
 
-              icon:
-              const Icon(
-                Icons.visibility,
-              ),
+              icon: const Icon(Icons.visibility),
 
-              label:
-              const Text(
-                "View Quiz",
-              ),
+              label: const Text("View Quiz"),
             ),
           ),
         ],
@@ -1495,199 +967,105 @@ class _AdminQuizViewScreenState
   // ============================================================
 
   @override
-  Widget build(
-      BuildContext context,
-      ) {
-
+  Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F8FC),
 
-      backgroundColor:
-      const Color(0xFFF7F8FC),
+      appBar: AppBar(
+        title: const Text("All Quizzes"),
 
-      appBar:
-      AppBar(
+        backgroundColor: Colors.lightBlue,
 
-        title:
-        const Text(
-          "All Quizzes",
-        ),
-
-        backgroundColor:
-        Colors.lightBlue,
-
-        foregroundColor:
-        Colors.white,
+        foregroundColor: Colors.white,
       ),
 
-      body:
-      StreamBuilder<QuerySnapshot>(
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection("quizzes").snapshots(),
 
-        stream:
-        FirebaseFirestore
-            .instance
-            .collection("quizzes")
-            .snapshots(),
-
-        builder:
-            (context, snapshot) {
-
-          if (snapshot.connectionState ==
-              ConnectionState.waiting) {
-
-            return const Center(
-              child:
-              CircularProgressIndicator(),
-            );
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
-
             return const Center(
               child: Text(
                 "Unable to load quizzes.",
-                style:
-                TextStyle(
-                  color: Colors.red,
-                ),
+                style: TextStyle(color: Colors.red),
               ),
             );
           }
 
-          final allQuizzes =
-              snapshot.data?.docs ?? [];
+          final allQuizzes = snapshot.data?.docs ?? [];
 
           if (allQuizzes.isEmpty) {
-
             return const Center(
               child: Text(
                 "No quizzes available.",
-                style:
-                TextStyle(
-                  color: Colors.grey,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: Colors.grey, fontSize: 16),
               ),
             );
           }
 
-          return ValueListenableBuilder<
-              TextEditingValue>(
+          return ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _searchController,
 
-            valueListenable:
-            _searchController,
+            builder: (context, searchValue, _) {
+              final quizzes = allQuizzes.where((doc) {
+                final quiz = doc.data() as Map<String, dynamic>;
 
-            builder:
-                (context, searchValue, _) {
-
-              final quizzes =
-              allQuizzes.where((doc) {
-
-                final quiz =
-                doc.data()
-                as Map<String, dynamic>;
-
-                return _matchesAllFilters(
-                  quiz,
-                );
-
+                return _matchesAllFilters(quiz);
               }).toList();
 
               return Column(
                 children: [
-
                   // ==================================================
                   // SEARCH BOX
                   // ==================================================
-
                   Padding(
-                    padding:
-                    const EdgeInsets.fromLTRB(
-                      16,
-                      16,
-                      16,
-                      8,
-                    ),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
 
-                    child:
-                    TextField(
+                    child: TextField(
+                      controller: _searchController,
 
-                      controller:
-                      _searchController,
+                      focusNode: _searchFocusNode,
 
-                      focusNode:
-                      _searchFocusNode,
+                      keyboardType: TextInputType.text,
 
-                      keyboardType:
-                      TextInputType.text,
+                      decoration: InputDecoration(
+                        hintText: 'Search subject, teacher...',
 
-                      decoration:
-                      InputDecoration(
+                        prefixIcon: const Icon(Icons.search),
 
-                        hintText:
-                        'Search subject, teacher...',
-
-                        prefixIcon:
-                        const Icon(
-                          Icons.search,
-                        ),
-
-                        suffixIcon:
-                        searchValue
-                            .text
-                            .isNotEmpty
+                        suffixIcon: searchValue.text.isNotEmpty
                             ? IconButton(
-                          icon:
-                          const Icon(
-                            Icons.clear,
-                          ),
-                          onPressed:
-                              () {
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
 
-                            _searchController
-                                .clear();
-
-                            _searchFocusNode
-                                .requestFocus();
-                          },
-                        )
+                                  _searchFocusNode.requestFocus();
+                                },
+                              )
                             : null,
 
-                        filled:
-                        true,
+                        filled: true,
 
-                        fillColor:
-                        Colors.white,
+                        fillColor: Colors.white,
 
-                        border:
-                        OutlineInputBorder(
-                          borderRadius:
-                          BorderRadius.circular(
-                            12,
-                          ),
-                          borderSide:
-                          BorderSide.none,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
                         ),
 
-                        enabledBorder:
-                        OutlineInputBorder(
-                          borderRadius:
-                          BorderRadius.circular(
-                            12,
-                          ),
-                          borderSide:
-                          BorderSide.none,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
                         ),
 
-                        focusedBorder:
-                        OutlineInputBorder(
-                          borderRadius:
-                          BorderRadius.circular(
-                            12,
-                          ),
-                          borderSide:
-                          const BorderSide(
-                            color:
-                            Colors.lightBlue,
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Colors.lightBlue,
                             width: 1.2,
                           ),
                         ),
@@ -1698,38 +1076,22 @@ class _AdminQuizViewScreenState
                   // ==================================================
                   // FILTER BUTTON
                   // ==================================================
-
                   Padding(
-                    padding:
-                    const EdgeInsets.symmetric(
-                      horizontal: 16,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
 
-                    child:
-                    Row(
+                    child: Row(
                       children: [
-
                         OutlinedButton.icon(
-
                           onPressed: () {
-
                             _openFilterMenu(
-                              allQuizzes.cast<
-                                  QueryDocumentSnapshot>(),
+                              allQuizzes.cast<QueryDocumentSnapshot>(),
                             );
                           },
 
-                          icon:
-                          const Icon(
-                            Icons
-                                .filter_alt_outlined,
-                            size: 18,
-                          ),
+                          icon: const Icon(Icons.filter_alt_outlined, size: 18),
 
-                          label:
-                          Text(
-                            _activeFilterCount() ==
-                                0
+                          label: Text(
+                            _activeFilterCount() == 0
                                 ? 'Filters'
                                 : 'Filters (${_activeFilterCount()})',
                           ),
@@ -1737,78 +1099,44 @@ class _AdminQuizViewScreenState
 
                         const Spacer(),
 
-                        if (_activeFilterCount() >
-                            0)
-
+                        if (_activeFilterCount() > 0)
                           TextButton(
-                            onPressed:
-                            _clearAllFilters,
+                            onPressed: _clearAllFilters,
 
-                            child:
-                            const Text(
-                              'Clear All',
-                            ),
+                            child: const Text('Clear All'),
                           ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 4,
-                  ),
+                  const SizedBox(height: 4),
 
                   // ==================================================
                   // RESULT COUNT
                   // ==================================================
-
-                  if (_activeFilterCount() >
-                      0)
-
+                  if (_activeFilterCount() > 0)
                     Container(
+                      width: double.infinity,
 
-                      width:
-                      double.infinity,
+                      margin: const EdgeInsets.fromLTRB(16, 4, 16, 4),
 
-                      margin:
-                      const EdgeInsets
-                          .fromLTRB(
-                        16,
-                        4,
-                        16,
-                        4,
-                      ),
-
-                      padding:
-                      const EdgeInsets
-                          .symmetric(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 9,
                       ),
 
-                      decoration:
-                      BoxDecoration(
-                        color:
-                        Colors.lightBlue
-                            .withOpacity(
-                          0.08,
-                        ),
+                      decoration: BoxDecoration(
+                        color: Colors.lightBlue.withOpacity(0.08),
 
-                        borderRadius:
-                        BorderRadius.circular(
-                          10,
-                        ),
+                        borderRadius: BorderRadius.circular(10),
                       ),
 
-                      child:
-                      Text(
+                      child: Text(
                         '${quizzes.length} matching quiz${quizzes.length == 1 ? '' : 'zes'}',
 
-                        style:
-                        const TextStyle(
-                          color:
-                          Colors.lightBlue,
-                          fontWeight:
-                          FontWeight.w600,
+                        style: const TextStyle(
+                          color: Colors.lightBlue,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -1816,69 +1144,44 @@ class _AdminQuizViewScreenState
                   // ==================================================
                   // NO RESULTS
                   // ==================================================
-
                   if (quizzes.isEmpty)
-
                     const Expanded(
-                      child:
-                      Center(
+                      child: Center(
                         child: Column(
-                          mainAxisSize:
-                          MainAxisSize.min,
+                          mainAxisSize: MainAxisSize.min,
 
                           children: [
-
                             Icon(
                               Icons.search_off,
                               size: 50,
-                              color:
-                              Colors.grey,
+                              color: Colors.grey,
                             ),
 
-                            SizedBox(
-                              height: 10,
-                            ),
+                            SizedBox(height: 10),
 
                             Text(
                               "No matching quizzes found.",
-                              style:
-                              TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
-                                color:
-                                Colors.black54,
+                                color: Colors.black54,
                               ),
                             ),
                           ],
                         ),
                       ),
                     )
-
                   // ==================================================
                   // QUIZ LIST
                   // ==================================================
-
                   else
-
                     Expanded(
-                      child:
-                      ListView.builder(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
 
-                        padding:
-                        const EdgeInsets
-                            .all(
-                          16,
-                        ),
+                        itemCount: quizzes.length,
 
-                        itemCount:
-                        quizzes.length,
-
-                        itemBuilder:
-                            (context, index) {
-
-                          return buildQuizCard(
-                            context,
-                            quizzes[index],
-                          );
+                        itemBuilder: (context, index) {
+                          return buildQuizCard(context, quizzes[index]);
                         },
                       ),
                     ),

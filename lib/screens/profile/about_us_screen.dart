@@ -32,7 +32,7 @@ class AboutUsScreen extends StatelessWidget {
               ),
               SizedBox(height: 32),
               Text(
-                'Version 1.0.0\n© 2025 Notes House',
+                'Version 1.0.0\n© 2025-2026 Notes House',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey),
               ),

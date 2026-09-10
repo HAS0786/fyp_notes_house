@@ -15,7 +15,6 @@ class QuizResultScreen extends StatelessWidget {
     required this.accuracy,
     required this.questions,
     required this.selectedAnswers,
-
   });
 
   @override
@@ -45,10 +44,7 @@ class QuizResultScreen extends StatelessWidget {
 
             Text(
               passed ? 'Quiz Completed' : 'Needs Improvement',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 8),
@@ -62,7 +58,7 @@ class QuizResultScreen extends StatelessWidget {
 
             const SizedBox(height: 32),
 
-            // 🔹 Accuracy
+            //  Accuracy
             SizedBox(
               height: 140,
               width: 140,
@@ -124,12 +120,17 @@ class QuizResultScreen extends StatelessWidget {
 
             const SizedBox(height: 32),
 
-            // 🔹 Info Cards
+            //  Info Cards
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 children: [
-                  _infoCard(Icons.star, 'Score', '$score / $total', Colors.amber),
+                  _infoCard(
+                    Icons.star,
+                    'Score',
+                    '$score / $total',
+                    Colors.amber,
+                  ),
                   const SizedBox(height: 12),
                   _infoCard(
                     Icons.check_circle,
@@ -143,7 +144,7 @@ class QuizResultScreen extends StatelessWidget {
 
             const SizedBox(height: 32),
 
-            // 🔥 ANSWER REVIEW SECTION
+            //  ANSWER REVIEW SECTION
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
@@ -151,10 +152,7 @@ class QuizResultScreen extends StatelessWidget {
                 children: [
                   const Text(
                     "Answer Review",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
 
@@ -166,12 +164,12 @@ class QuizResultScreen extends StatelessWidget {
                     // int correctIndex = int.tryParse(q['correct']?.toString() ?? '') ?? -1
                     int correctIndex = -1;
 
-// Case 1: correct exists
+                    // Case 1: correct exists
                     if (q['correct'] != null) {
-                      correctIndex = int.tryParse(q['correct'].toString()) ?? -1;
+                      correctIndex =
+                          int.tryParse(q['correct'].toString()) ?? -1;
                     }
-
-// Case 2: AI answer
+                    // Case 2: AI answer
                     else if (q['answer'] != null) {
                       var ans = q['answer'];
 
@@ -231,8 +229,10 @@ class QuizResultScreen extends StatelessWidget {
                                     if (icon != null)
                                       Icon(
                                         icon,
-                                        color: isCorrect ? Colors.green : Colors.red,
-                                      )
+                                        color: isCorrect
+                                            ? Colors.green
+                                            : Colors.red,
+                                      ),
                                   ],
                                 ),
                               );
@@ -248,7 +248,7 @@ class QuizResultScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // 🔹 Buttons
+            // Buttons
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(

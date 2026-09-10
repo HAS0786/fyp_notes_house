@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fyp_ui_design/firebase/services/quiz_service.dart';
 import 'package:fyp_ui_design/widgets/academic_info_form.dart';
 
@@ -15,7 +14,6 @@ class CreateMCQScreen extends StatefulWidget {
   }
 }
 
-
 class _CreateMCQScreenState extends State<CreateMCQScreen> {
   AcademicSelection academic = AcademicSelection();
   String? correctAnswerIndex;
@@ -25,8 +23,6 @@ class _CreateMCQScreenState extends State<CreateMCQScreen> {
   final option2Ctrl = TextEditingController();
   final option3Ctrl = TextEditingController();
   final option4Ctrl = TextEditingController();
-
-
 
   final List<Map<String, dynamic>> allQuestions = [];
 
@@ -79,9 +75,9 @@ class _CreateMCQScreenState extends State<CreateMCQScreen> {
         academic.semester == null ||
         academic.subject == null ||
         academic.location == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Complete all fields')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Complete all fields')));
       return;
     }
 
@@ -111,155 +107,155 @@ class _CreateMCQScreenState extends State<CreateMCQScreen> {
       Navigator.pop(context);
     }
   }
+
   // ---------------- UI ----------------
   @override
   Widget build(BuildContext context) {
     return Stack(
-      children:[ Scaffold(
-        backgroundColor: const Color(0xFFF4F6F8),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-
-              // ================= BASIC INFO =================
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-
-                      const Text(
-                        'Academic Information',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+      children: [
+        Scaffold(
+          backgroundColor: const Color(0xFFF4F6F8),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // ================= BASIC INFO =================
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Academic Information',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const Divider(),
+                        const Divider(),
 
-                      AcademicInfoForm(
-                        value: academic,
-                        onChanged: (val) {
-                          setState(() {
-                            academic = val;
-                          });
-                        },
-                      ),
-                    ],
+                        AcademicInfoForm(
+                          value: academic,
+                          onChanged: (val) {
+                            setState(() {
+                              academic = val;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-              // ================= QUESTION =================
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-
-                      const Text(
-                        'Add Question',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Divider(),
-
-                      TextField(
-                        controller: questionCtrl,
-                        decoration:
-                        const InputDecoration(labelText: 'Question'),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      TextField(
-                        controller: option1Ctrl,
-                        decoration: InputDecoration(
-                          labelText: 'Option A',
-                          prefixIcon: Radio<String>(
-                            value: '0',
-                            groupValue: correctAnswerIndex,
-                            onChanged: (v) =>
-                                setState(() => correctAnswerIndex = v),
+                // ================= QUESTION =================
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Add Question',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
+                        const Divider(),
 
-                      TextField(
-                        controller: option2Ctrl,
-                        decoration: InputDecoration(
-                          labelText: 'Option B',
-                          prefixIcon: Radio<String>(
-                            value: '1',
-                            groupValue: correctAnswerIndex,
-                            onChanged: (v) =>
-                                setState(() => correctAnswerIndex = v),
+                        TextField(
+                          controller: questionCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Question',
                           ),
                         ),
-                      ),
 
-                      TextField(
-                        controller: option3Ctrl,
-                        decoration: InputDecoration(
-                          labelText: 'Option C',
-                          prefixIcon: Radio<String>(
-                            value: '2',
-                            groupValue: correctAnswerIndex,
-                            onChanged: (v) =>
-                                setState(() => correctAnswerIndex = v),
+                        const SizedBox(height: 12),
+
+                        TextField(
+                          controller: option1Ctrl,
+                          decoration: InputDecoration(
+                            labelText: 'Option A',
+                            prefixIcon: Radio<String>(
+                              value: '0',
+                              groupValue: correctAnswerIndex,
+                              onChanged: (v) =>
+                                  setState(() => correctAnswerIndex = v),
+                            ),
                           ),
                         ),
-                      ),
 
-                      TextField(
-                        controller: option4Ctrl,
-                        decoration: InputDecoration(
-                          labelText: 'Option D',
-                          prefixIcon: Radio<String>(
-                            value: '3',
-                            groupValue: correctAnswerIndex,
-                            onChanged: (v) =>
-                                setState(() => correctAnswerIndex = v),
+                        TextField(
+                          controller: option2Ctrl,
+                          decoration: InputDecoration(
+                            labelText: 'Option B',
+                            prefixIcon: Radio<String>(
+                              value: '1',
+                              groupValue: correctAnswerIndex,
+                              onChanged: (v) =>
+                                  setState(() => correctAnswerIndex = v),
+                            ),
                           ),
                         ),
-                      ),
 
-                      const SizedBox(height: 12),
+                        TextField(
+                          controller: option3Ctrl,
+                          decoration: InputDecoration(
+                            labelText: 'Option C',
+                            prefixIcon: Radio<String>(
+                              value: '2',
+                              groupValue: correctAnswerIndex,
+                              onChanged: (v) =>
+                                  setState(() => correctAnswerIndex = v),
+                            ),
+                          ),
+                        ),
 
-                      ElevatedButton(
-                        onPressed: _addQuestion,
-                        child: const Text('Add Question'),
-                      ),
-                    ],
+                        TextField(
+                          controller: option4Ctrl,
+                          decoration: InputDecoration(
+                            labelText: 'Option D',
+                            prefixIcon: Radio<String>(
+                              value: '3',
+                              groupValue: correctAnswerIndex,
+                              onChanged: (v) =>
+                                  setState(() => correctAnswerIndex = v),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        ElevatedButton(
+                          onPressed: _addQuestion,
+                          child: const Text('Add Question'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-              Text(
-                '${allQuestions.length} question(s) added',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ],
+                Text(
+                  '${allQuestions.length} question(s) added',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
         if (isLoading)
           Center(
             child: Container(
@@ -284,6 +280,7 @@ class _CreateMCQScreenState extends State<CreateMCQScreen> {
               ),
             ),
           ),
-    ]
+      ],
     );
-  }}
+  }
+}

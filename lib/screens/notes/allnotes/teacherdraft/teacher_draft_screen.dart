@@ -282,7 +282,7 @@ class _TeacherDraftScreenState extends State<TeacherDraftScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// 🔹 TITLE
+            ///  TITLE
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -320,14 +320,14 @@ class _TeacherDraftScreenState extends State<TeacherDraftScreen>
 
             const SizedBox(height: 10),
 
-            /// 🔹 INFO SECTION
+            ///  INFO SECTION
             buildInfoRow(Icons.school, note['university']),
             buildInfoRow(Icons.location_on, note['location']),
             buildInfoRow(Icons.account_tree, note['department'] ?? ""),
             buildInfoRow(Icons.menu_book, "Semester ${note['semester']}"),
             buildInfoRow(Icons.book, note['subject']),
 
-            /// 🔴 REJECTION REASON
+            ///  REJECTION REASON
             if (status == "rejected" && note['rejectionReason'] != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
@@ -339,7 +339,7 @@ class _TeacherDraftScreenState extends State<TeacherDraftScreen>
 
             const SizedBox(height: 10),
 
-            /// 🔹 ACTIONS
+            ///  ACTIONS
             Row(
               children: [
                 if (status == "pending" || status == "rejected")

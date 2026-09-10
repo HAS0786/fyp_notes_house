@@ -37,7 +37,7 @@ class _OfflineNotesScreenState extends State<OfflineNotesScreen> {
     return path.split('/').last.replaceAll('.pdf', '');
   }
 
-  // 🔴 Delete PDF
+  //  Delete PDF
   Future<void> _deleteFile(FileSystemEntity file) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -133,7 +133,7 @@ class _OfflineNotesScreenState extends State<OfflineNotesScreen> {
                 ),
               ),
 
-              // 🔹 Menu (Delete)
+              //  Menu (Delete)
               trailing: PopupMenuButton<String>(
                 onSelected: (value) {
                   if (value == 'delete') {

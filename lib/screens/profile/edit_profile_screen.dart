@@ -42,6 +42,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String normalize(String text) {
     return text.toLowerCase().trim();
   }
+
   /// PICK IMAGE
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -89,7 +90,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // 🔹 Profile Image
+            //  Profile Image
             Stack(
               children: [
                 CircleAvatar(
@@ -98,7 +99,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   backgroundImage: _imagePath != null
                       ? FileImage(File(_imagePath!))
                       : const AssetImage('assets/images/user.png')
-                  as ImageProvider,
+                            as ImageProvider,
                 ),
                 Positioned(
                   bottom: 0,
@@ -108,8 +109,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: const CircleAvatar(
                       radius: 18,
                       backgroundColor: Colors.lightBlue,
-                      child: Icon(Icons.camera_alt,
-                          size: 18, color: Colors.white),
+                      child: Icon(
+                        Icons.camera_alt,
+                        size: 18,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
@@ -146,9 +150,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         controller: ctrl,
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
     );
@@ -162,9 +164,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         controller: TextEditingController(text: value),
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
     );

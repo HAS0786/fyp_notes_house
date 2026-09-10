@@ -118,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ElevatedButton(
                     onPressed: () async {
                       Navigator.pop(context);
-                      await retryTeacher(); // 👈 API call
+                      await retryTeacher(); //  API call
                     },
                     child: const Text("Request Again"),
                   ),
@@ -167,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
     String finalRole = role;
 
     if (role == 'teacher' && status != 'approved') {
-      finalRole = 'student'; // 👈 FORCE student mode
+      finalRole = 'student'; // FORCE student mode
     }
 
     final prefs = await SharedPreferences.getInstance();

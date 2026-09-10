@@ -41,7 +41,7 @@ class QuizViewerScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
 
-                /// 🔹 QUESTION HEADER
+                ///  QUESTION HEADER
                 Text(
                   "Question ${i + 1}",
                   style: TextStyle(
@@ -62,7 +62,7 @@ class QuizViewerScreen extends StatelessWidget {
 
                 const SizedBox(height: 12),
 
-                /// 🔹 OPTIONS
+                ///  OPTIONS
                 ...List.generate(q['options'].length, (index) {
                   final option = q['options'][index];
 

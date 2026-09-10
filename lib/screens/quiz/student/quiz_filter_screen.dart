@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_ui_design/screens/quiz/quiz_list_screen.dart';
 import 'package:path/path.dart' as p;
+
 class QuizFilterScreen extends StatefulWidget {
   const QuizFilterScreen({super.key});
 
@@ -16,18 +17,20 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
   String? subject;
   int? semester;
 
-  /// 🔹 UNIVERSITY STREAM
+  ///  UNIVERSITY STREAM
   Stream<List<String>> universitiesStream() {
     return FirebaseFirestore.instance
         .collection('universities')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) => doc['name'].toString())
-        .toSet()
-        .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => doc['name'].toString())
+              .toSet()
+              .toList(),
+        );
   }
 
-  /// 🔹 CAMPUS (DEPENDENT ON UNIVERSITY)
+  ///  CAMPUS (DEPENDENT ON UNIVERSITY)
   Stream<List<String>> locationsStream() {
     if (university == null) return const Stream.empty();
 
@@ -36,26 +39,24 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
         .where('name', isEqualTo: normalize(university!))
         .snapshots()
         .map((snapshot) {
-      final allLocations = <String>{};
+          final allLocations = <String>{};
 
-      for (var doc in snapshot.docs) {
-        final locData = doc['location'];
+          for (var doc in snapshot.docs) {
+            final locData = doc['location'];
 
-        if (locData is List) {
-          allLocations.addAll(
-            locData.map((e) => e.toString().trim()),
-          );
-        } else if (locData is String && locData.isNotEmpty) {
-          // backward compatibility
-          allLocations.add(locData.trim());
-        }
-      }
+            if (locData is List) {
+              allLocations.addAll(locData.map((e) => e.toString().trim()));
+            } else if (locData is String && locData.isNotEmpty) {
+              // backward compatibility
+              allLocations.add(locData.trim());
+            }
+          }
 
-      return allLocations.toList();
-    });
+          return allLocations.toList();
+        });
   }
 
-  /// 🔹 DEPARTMENT (DEPENDENT ON UNIVERSITY + CAMPUS)
+  //  DEPARTMENT (DEPENDENT ON UNIVERSITY + CAMPUS)
   Stream<List<String>> departmentsStream() {
     if (university == null || campus == null) {
       return const Stream.empty();
@@ -64,29 +65,28 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
     return FirebaseFirestore.instance
         .collection('departments')
         .where('university', isEqualTo: normalize(university!))
-        .where('location', isEqualTo:normalize(campus!))
+        .where('location', isEqualTo: normalize(campus!))
         .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) => doc['name'].toString())
-        .toSet()
-        .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => doc['name'].toString())
+              .toSet()
+              .toList(),
+        );
   }
 
-  /// 🔹 SEMESTER (FROM QUIZZES)
+  // SEMESTER (FROM QUIZZES)
   Stream<List<int>> semestersStream() {
     Query query = FirebaseFirestore.instance.collection('quizzes');
 
     if (university != null) {
-      query = query.where('university',
-          isEqualTo: normalize(university!));
+      query = query.where('university', isEqualTo: normalize(university!));
     }
     if (campus != null) {
-      query = query.where('location',
-          isEqualTo: normalize(campus!));
+      query = query.where('location', isEqualTo: normalize(campus!));
     }
     if (department != null) {
-      query = query.where('department',
-          isEqualTo: normalize(department!));
+      query = query.where('department', isEqualTo: normalize(department!));
     }
 
     return query.snapshots().map((snapshot) {
@@ -95,25 +95,23 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
       final semesters = snapshot.docs
           .map((doc) => doc['semester'])
           .map((e) {
-        if (e == null) return null;
+            if (e == null) return null;
 
-        // ✔ int case
-        if (e is int) return e;
+            // ✔ int case
+            if (e is int) return e;
 
-        // ✔ string "2"
-        if (e is String && RegExp(r'^\d+$').hasMatch(e)) {
-          return int.tryParse(e);
-        }
+            // ✔ string "2"
+            if (e is String && RegExp(r'^\d+$').hasMatch(e)) {
+              return int.tryParse(e);
+            }
 
-        // ✔ string "Semester 2"
-        if (e is String && e.toLowerCase().contains("semester")) {
-          return int.tryParse(
-            e.replaceAll(RegExp(r'[^0-9]'), ''),
-          );
-        }
+            // ✔ string "Semester 2"
+            if (e is String && e.toLowerCase().contains("semester")) {
+              return int.tryParse(e.replaceAll(RegExp(r'[^0-9]'), ''));
+            }
 
-        return null;
-      })
+            return null;
+          })
           .where((e) => e != null)
           .cast<int>()
           .toSet()
@@ -124,7 +122,8 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
       return semesters..sort();
     });
   }
-  /// 🔹 SUBJECT (FROM QUIZZES)
+
+  // SUBJECT (FROM QUIZZES)
   Stream<List<String>> subjectsStream() {
     Query query = FirebaseFirestore.instance.collection('quizzes');
 
@@ -148,16 +147,16 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
     });
   }
 
-  /// 🔍 SEARCH
+  // SEARCH
   void search() {
     if (university == null ||
         campus == null ||
         department == null ||
         semester == null ||
         subject == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select all fields")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Please select all fields")));
       return;
     }
 
@@ -176,12 +175,18 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
   }
 
   String normalize(String text) {
-    return text.trim().toLowerCase().split(" ").map((word) {
-      return word.isEmpty
-          ? word
-          : word[0].toUpperCase() + word.substring(1);
-    }).join(" ");
+    return text
+        .trim()
+        .toLowerCase()
+        .split(" ")
+        .map((word) {
+          return word.isEmpty
+              ? word
+              : word[0].toUpperCase() + word.substring(1);
+        })
+        .join(" ");
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -189,8 +194,7 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-
-            /// 🔥 QUIZ INFO CARD
+            ///  QUIZ INFO CARD
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
@@ -201,37 +205,46 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     const Text(
                       "Quiz Information",
-                      style:
-                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const Divider(),
 
-                    /// 🔹 UNIVERSITY
+                    ///  UNIVERSITY
                     StreamBuilder<List<String>>(
                       stream: universitiesStream(),
                       builder: (context, snapshot) {
                         final data = snapshot.data ?? [];
 
                         return DropdownButtonFormField<String>(
-                          value: data.any((e) => e.toLowerCase() == (university ?? "").toLowerCase())
-                              ? data.firstWhere((e) => e.toLowerCase() == university!.toLowerCase())
+                          value:
+                              data.any(
+                                (e) =>
+                                    e.toLowerCase() ==
+                                    (university ?? "").toLowerCase(),
+                              )
+                              ? data.firstWhere(
+                                  (e) =>
+                                      e.toLowerCase() ==
+                                      university!.toLowerCase(),
+                                )
                               : null,
                           hint: const Text("Select University"),
                           items: data.map((e) {
-                            return DropdownMenuItem(
-                                value: e, child: Text(e));
+                            return DropdownMenuItem(value: e, child: Text(e));
                           }).toList(),
-                            onChanged: (v) {
-                              setState(() {
-                                university = v;
-                                campus = null;
-                                department = null;
-                                subject = null;
-                                semester = null;
-                              });
+                          onChanged: (v) {
+                            setState(() {
+                              university = v;
+                              campus = null;
+                              department = null;
+                              subject = null;
+                              semester = null;
+                            });
                           },
                         );
                       },
@@ -239,20 +252,27 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
 
                     const SizedBox(height: 12),
 
-                    /// 🔹 CAMPUS
+                    // CAMPUS
                     StreamBuilder<List<String>>(
                       stream: locationsStream(),
                       builder: (context, snapshot) {
                         final data = snapshot.data ?? [];
 
                         return DropdownButtonFormField<String>(
-                          value: data.any((e) => e.toLowerCase() == (campus ?? "").toLowerCase())
-                              ? data.firstWhere((e) => e.toLowerCase() == campus!.toLowerCase())
+                          value:
+                              data.any(
+                                (e) =>
+                                    e.toLowerCase() ==
+                                    (campus ?? "").toLowerCase(),
+                              )
+                              ? data.firstWhere(
+                                  (e) =>
+                                      e.toLowerCase() == campus!.toLowerCase(),
+                                )
                               : null,
                           hint: const Text("Select Campus"),
                           items: data.map((e) {
-                            return DropdownMenuItem(
-                                value: e, child: Text(e));
+                            return DropdownMenuItem(value: e, child: Text(e));
                           }).toList(),
                           onChanged: (v) {
                             setState(() {
@@ -268,20 +288,28 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
 
                     const SizedBox(height: 12),
 
-                    /// 🔹 DEPARTMENT
+                    ///  DEPARTMENT
                     StreamBuilder<List<String>>(
                       stream: departmentsStream(),
                       builder: (context, snapshot) {
                         final data = snapshot.data ?? [];
 
                         return DropdownButtonFormField<String>(
-                          value: data.any((e) => e.toLowerCase() == (department ?? "").toLowerCase())
-                              ? data.firstWhere((e) => e.toLowerCase() == department!.toLowerCase())
+                          value:
+                              data.any(
+                                (e) =>
+                                    e.toLowerCase() ==
+                                    (department ?? "").toLowerCase(),
+                              )
+                              ? data.firstWhere(
+                                  (e) =>
+                                      e.toLowerCase() ==
+                                      department!.toLowerCase(),
+                                )
                               : null,
                           hint: const Text("Select Department"),
                           items: data.map((e) {
-                            return DropdownMenuItem(
-                                value: e, child: Text(e));
+                            return DropdownMenuItem(value: e, child: Text(e));
                           }).toList(),
                           onChanged: (v) {
                             setState(() {
@@ -296,15 +324,14 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
 
                     const SizedBox(height: 12),
 
-                    /// 🔹 SEMESTER
+                    ///  SEMESTER
                     StreamBuilder<List<int>>(
                       stream: semestersStream(),
                       builder: (context, snapshot) {
                         final data = snapshot.data ?? [];
 
                         return DropdownButtonFormField<int>(
-                          value:
-                          data.contains(semester) ? semester : null,
+                          value: data.contains(semester) ? semester : null,
                           hint: const Text("Select Semester"),
                           items: data.map((e) {
                             return DropdownMenuItem(
@@ -324,20 +351,27 @@ class _QuizFilterScreenState extends State<QuizFilterScreen> {
 
                     const SizedBox(height: 12),
 
-                    /// 🔹 SUBJECT
+                    ///  SUBJECT
                     StreamBuilder<List<String>>(
                       stream: subjectsStream(),
                       builder: (context, snapshot) {
                         final data = snapshot.data ?? [];
 
                         return DropdownButtonFormField<String>(
-                          value: data.any((e) => e.toLowerCase() == (subject ?? "").toLowerCase())
-                              ? data.firstWhere((e) => e.toLowerCase() == subject!.toLowerCase())
+                          value:
+                              data.any(
+                                (e) =>
+                                    e.toLowerCase() ==
+                                    (subject ?? "").toLowerCase(),
+                              )
+                              ? data.firstWhere(
+                                  (e) =>
+                                      e.toLowerCase() == subject!.toLowerCase(),
+                                )
                               : null,
                           hint: const Text("Select Subject"),
                           items: data.map((e) {
-                            return DropdownMenuItem(
-                                value: e, child: Text(e));
+                            return DropdownMenuItem(value: e, child: Text(e));
                           }).toList(),
                           onChanged: (v) {
                             setState(() {

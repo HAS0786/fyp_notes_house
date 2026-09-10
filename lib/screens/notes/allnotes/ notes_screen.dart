@@ -72,7 +72,8 @@ class NotesScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // 🔹 Icon Container
+
+                  // Icon Container
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
@@ -88,7 +89,7 @@ class NotesScreen extends StatelessWidget {
 
                   const SizedBox(height: 12),
 
-                  // 🔹 Category Title
+                  //  Category Title
                   Text(
                     cat['title'] as String,
                     textAlign: TextAlign.center,

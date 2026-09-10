@@ -26,7 +26,7 @@ class AdminTeacherScreen extends StatelessWidget {
     );
   }
 
-  Future<void> rejectTeacher(String teacherId,String reason) async {
+  Future<void> rejectTeacher(String teacherId, String reason) async {
     final token = await _getToken();
 
     await http.post(
@@ -37,10 +37,11 @@ class AdminTeacherScreen extends StatelessWidget {
       },
       body: jsonEncode({
         "teacherId": teacherId,
-        "reason": reason, // 🔥 IMPORTANT
+        "reason": reason, //  IMPORTANT
       }),
     );
   }
+
   void showRejectDialog(BuildContext context, String teacherId) {
     final controller = TextEditingController();
 
@@ -50,9 +51,7 @@ class AdminTeacherScreen extends StatelessWidget {
         title: const Text("Reject Teacher"),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            hintText: "Enter rejection reason",
-          ),
+          decoration: const InputDecoration(hintText: "Enter rejection reason"),
           maxLines: 3,
         ),
         actions: [
@@ -68,9 +67,9 @@ class AdminTeacherScreen extends StatelessWidget {
 
               await rejectTeacher(teacherId, reason);
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Teacher rejected")),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text("Teacher rejected")));
             },
             child: const Text("Submit"),
           ),
@@ -78,6 +77,7 @@ class AdminTeacherScreen extends StatelessWidget {
       ),
     );
   }
+
   Widget buildInfoRow(IconData icon, String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
@@ -85,9 +85,7 @@ class AdminTeacherScreen extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: Colors.grey),
           const SizedBox(width: 6),
-          Expanded(
-            child: Text(text, style: const TextStyle(fontSize: 13)),
-          ),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 13))),
         ],
       ),
     );
@@ -113,14 +111,10 @@ class AdminTeacherScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           /// NAME
           Text(
             teacher['name'] ?? "No Name",
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
 
           const SizedBox(height: 10),
@@ -137,7 +131,7 @@ class AdminTeacherScreen extends StatelessWidget {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
-                    foregroundColor: Colors.white
+                  foregroundColor: Colors.white,
                 ),
                 onPressed: () => approveTeacher(doc.id),
                 child: const Text("Approve"),
@@ -148,7 +142,7 @@ class AdminTeacherScreen extends StatelessWidget {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
-                    foregroundColor: Colors.white
+                  foregroundColor: Colors.white,
                 ),
                 onPressed: () => showRejectDialog(context, doc.id),
                 child: const Text("Reject"),

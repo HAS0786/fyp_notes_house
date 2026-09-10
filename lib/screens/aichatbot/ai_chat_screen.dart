@@ -39,7 +39,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
     super.initState();
 
     if (widget.pdfPath != null) {
-      activeFilePath = widget.pdfPath; // 🔥 set here (NOT pickedFilePath)
+      activeFilePath = widget.pdfPath; //  set here (NOT pickedFilePath)
       messages.add({
         "text": "📎 ${widget.pdfTitle ?? "PDF attached"}",
         "isUser": true,
@@ -58,6 +58,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
   Future<String?> getToken() async {
     return await FirebaseAuth.instance.currentUser?.getIdToken();
   }
+
   Future<String?> createSession() async {
     final token = await getToken();
 
@@ -145,9 +146,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
       activeFilePath = null; //  send only once
     }
 
-    final response = await request.send().timeout(
-      const Duration(minutes: 2),
-    );
+    final response = await request.send().timeout(const Duration(minutes: 2));
     final res = await http.Response.fromStream(response);
     if (res.statusCode != 200) {
       setState(() {
@@ -158,6 +157,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
         });
         isLoading = false;
       });
+
       return;
     }
 
@@ -191,9 +191,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
         if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('File size must be 10 MB or less.'),
-          ),
+          const SnackBar(content: Text('File size must be 10 MB or less.')),
         );
         return;
       }
@@ -247,8 +245,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
 
           ChatInputBar(
             controller: _controller,
+            isLoading: isLoading,
             onSend: isLoading ? null : () => sendMessage(),
-            onAttach: pickFile, //  IMPORTANT
+            onAttach: pickFile,
           ),
         ],
       ),

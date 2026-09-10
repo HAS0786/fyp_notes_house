@@ -113,7 +113,7 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
         return;
       }
 
-      // 🔥 STEP 2: SAFE EXTRACTION
+      // STEP 2: SAFE EXTRACTION
       final quiz = data["quiz"] ?? data["questions"];
 
       if (quiz == null || quiz is! List) {
@@ -143,7 +143,7 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
           );
           return;
         }
-        // 🔵 TEACHER FLOW (same as before)
+        //  TEACHER FLOW (same as before)
         final updatedQuiz = await Navigator.push(
           context,
           MaterialPageRoute(
@@ -167,7 +167,7 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
           generatedQuiz = updatedQuiz;
         }
       } else {
-        // 🟢 STUDENT FLOW (DIRECT QUIZ)
+        //  STUDENT FLOW (DIRECT QUIZ)
 
         String fileName = p.basename(selectedFile!.path);
 
@@ -193,12 +193,6 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
       ).showSnackBar(SnackBar(content: Text("Error: $e")));
     }
   }
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   AIQuizUploadScreen._instance = this;
-  // }
 
   Future<void> _saveQuiz() async {
     if (!widget.isTeacher) return;
@@ -275,7 +269,8 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
       ),
     );
   }
-// 🧩 UI
+
+  // 🧩 UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -397,8 +392,7 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                                     return const SizedBox();
                                   }
 
-                                  final sizeMB =
-                                      snapshot.data! / (1024 * 1024);
+                                  final sizeMB = snapshot.data! / (1024 * 1024);
 
                                   return Text(
                                     isFileValid
@@ -448,46 +442,42 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
                   loading
                       ? const CircularProgressIndicator()
                       : ElevatedButton(
-                    onPressed: widget.isTeacher
-                        ? (isFileValid &&
-                        academic.university != null &&
-                        academic.department != null &&
-                        academic.semester != null &&
-                        academic.subject != null)
-                        ? () => generateQuiz()
-                        : null
-                        : (isFileValid
-                        ? () => generateQuiz()
-                        : null),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 30,
-                        vertical: 14,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 5,
-                    ),
-                    child: const Text(
-                      "Generate AI Quiz",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                          onPressed: widget.isTeacher
+                              ? (isFileValid &&
+                                        academic.university != null &&
+                                        academic.department != null &&
+                                        academic.semester != null &&
+                                        academic.subject != null)
+                                    ? () => generateQuiz()
+                                    : null
+                              : (isFileValid ? () => generateQuiz() : null),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 30,
+                              vertical: 14,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 5,
+                          ),
+                          child: const Text(
+                            "Generate AI Quiz",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
 
                   // REGENERATE BUTTON
                   if (widget.isTeacher && generatedQuiz.isNotEmpty) ...[
                     const SizedBox(height: 12),
 
                     OutlinedButton.icon(
-                      onPressed: loading ||
-                          selectedFile == null ||
-                          !isFileValid
+                      onPressed: loading || selectedFile == null || !isFileValid
                           ? null
                           : () => generateQuiz(isRegenerate: true),
                       icon: const Icon(Icons.refresh),
@@ -543,4 +533,5 @@ class _AIQuizUploadScreenState extends State<AIQuizUploadScreen> {
         ],
       ),
     );
-  }}
+  }
+}

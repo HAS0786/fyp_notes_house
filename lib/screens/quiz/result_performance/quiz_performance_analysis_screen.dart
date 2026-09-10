@@ -7,8 +7,7 @@ class QuizPerformanceScreen extends StatefulWidget {
   const QuizPerformanceScreen({super.key});
 
   @override
-  State<QuizPerformanceScreen> createState() =>
-      _QuizPerformanceScreenState();
+  State<QuizPerformanceScreen> createState() => _QuizPerformanceScreenState();
 }
 
 class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
@@ -51,8 +50,7 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
   DateTime _getEndDate() {
     final now = DateTime.now();
 
-    if (selectedFilter == 'Custom Range' &&
-        customEndDate != null) {
+    if (selectedFilter == 'Custom Range' && customEndDate != null) {
       return DateTime(
         customEndDate!.year,
         customEndDate!.month,
@@ -61,11 +59,7 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
     }
 
     // Include the complete current day.
-    return DateTime(
-      now.year,
-      now.month,
-      now.day,
-    ).add(const Duration(days: 1));
+    return DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
   }
 
   bool _isInSelectedRange(DateTime date) {
@@ -101,9 +95,7 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.lightBlue,
-            ),
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
           ),
           child: child!,
         );
@@ -146,9 +138,7 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
 
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           final allDocs = snapshot.data!.docs;
@@ -180,14 +170,11 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
             final timestampA = dataA['attemptedAt'];
             final timestampB = dataB['attemptedAt'];
 
-            if (timestampA is! Timestamp ||
-                timestampB is! Timestamp) {
+            if (timestampA is! Timestamp || timestampB is! Timestamp) {
               return 0;
             }
 
-            return timestampA
-                .toDate()
-                .compareTo(timestampB.toDate());
+            return timestampA.toDate().compareTo(timestampB.toDate());
           });
 
           // =====================================================
@@ -204,20 +191,13 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
           int totalAccuracy = 0;
 
           for (int i = 0; i < filteredDocs.length; i++) {
-            final data =
-            filteredDocs[i].data() as Map<String, dynamic>;
+            final data = filteredDocs[i].data() as Map<String, dynamic>;
 
-            final int accuracy =
-                int.tryParse(data['accuracy'].toString()) ?? 0;
+            final int accuracy = int.tryParse(data['accuracy'].toString()) ?? 0;
 
             totalAccuracy += accuracy;
 
-            lineSpots.add(
-              FlSpot(
-                i.toDouble(),
-                accuracy.toDouble(),
-              ),
-            );
+            lineSpots.add(FlSpot(i.toDouble(), accuracy.toDouble()));
 
             barGroups.add(
               BarChartGroupData(
@@ -251,17 +231,11 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
           if (filteredDocs.isNotEmpty) {
             maxAccuracy = filteredDocs
                 .map((d) {
-              final data =
-              d.data() as Map<String, dynamic>;
+                  final data = d.data() as Map<String, dynamic>;
 
-              return int.tryParse(
-                data['accuracy'].toString(),
-              ) ??
-                  0;
-            })
-                .reduce(
-                  (a, b) => a > b ? a : b,
-            );
+                  return int.tryParse(data['accuracy'].toString()) ?? 0;
+                })
+                .reduce((a, b) => a > b ? a : b);
           }
 
           return SingleChildScrollView(
@@ -274,7 +248,6 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
                 // =================================================
                 // FILTER
                 // =================================================
-
                 _buildFilterCard(),
 
                 const SizedBox(height: 20),
@@ -282,7 +255,6 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
                 // =================================================
                 // SUMMARY
                 // =================================================
-
                 Row(
                   children: [
                     _summaryCard(
@@ -301,11 +273,7 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
 
                     const SizedBox(width: 12),
 
-                    _summaryCard(
-                      'Best Score',
-                      '$maxAccuracy%',
-                      Icons.star,
-                    ),
+                    _summaryCard('Best Score', '$maxAccuracy%', Icons.star),
                   ],
                 ),
 
@@ -314,51 +282,34 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
                 // =================================================
                 // NO DATA
                 // =================================================
-
                 if (filteredDocs.isEmpty)
                   _buildNoDataCard()
                 else ...[
                   // =================================================
                   // ACCURACY PROGRESS
                   // =================================================
-
                   _section(
                     title: 'Accuracy Progress',
-                    description:
-                    'Performance trend across the selected period',
-                    child: _lineChart(
-                      lineSpots,
-                      filteredDocs,
-                    ),
+                    description: 'Performance trend across the selected period',
+                    child: _lineChart(lineSpots, filteredDocs),
                   ),
 
                   // =================================================
                   // SCORE DISTRIBUTION
                   // =================================================
-
                   _section(
                     title: 'Score Distribution',
-                    description:
-                    'Accuracy for each quiz attempt',
-                    child: _barChart(
-                      barGroups,
-                      filteredDocs,
-                    ),
+                    description: 'Accuracy for each quiz attempt',
+                    child: _barChart(barGroups, filteredDocs),
                   ),
 
                   // =================================================
                   // PERFORMANCE BREAKDOWN
                   // =================================================
-
                   _section(
                     title: 'Performance Breakdown',
-                    description:
-                    'Overall classification of quiz performance',
-                    child: _pieChart(
-                      excellent,
-                      average,
-                      poor,
-                    ),
+                    description: 'Overall classification of quiz performance',
+                    child: _pieChart(excellent, average, poor),
                   ),
                 ],
               ],
@@ -380,7 +331,7 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
         customStartDate != null &&
         customEndDate != null) {
       displayText =
-      '${customStartDate!.day}/${customStartDate!.month}/${customStartDate!.year}'
+          '${customStartDate!.day}/${customStartDate!.month}/${customStartDate!.year}'
           ' - '
           '${customEndDate!.day}/${customEndDate!.month}/${customEndDate!.year}';
     }
@@ -388,9 +339,7 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
     return Card(
       elevation: 2,
 
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
 
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -401,19 +350,14 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
           children: [
             const Text(
               'Performance Period',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 5),
 
             const Text(
               'Choose the time period for your quiz performance',
-              style: TextStyle(
-                color: Colors.black54,
-              ),
+              style: TextStyle(color: Colors.black54),
             ),
 
             const SizedBox(height: 14),
@@ -422,14 +366,11 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
               borderRadius: BorderRadius.circular(10),
 
               onTap: () async {
-                final result =
-                await showModalBottomSheet<String>(
+                final result = await showModalBottomSheet<String>(
                   context: context,
 
-                  shape:
-                  const RoundedRectangleBorder(
-                    borderRadius:
-                    BorderRadius.vertical(
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
                       top: Radius.circular(20),
                     ),
                   ),
@@ -437,34 +378,26 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
                   builder: (context) {
                     return SafeArea(
                       child: Column(
-                        mainAxisSize:
-                        MainAxisSize.min,
+                        mainAxisSize: MainAxisSize.min,
 
                         children: [
                           const Padding(
-                            padding:
-                            EdgeInsets.all(16),
+                            padding: EdgeInsets.all(16),
 
                             child: Align(
-                              alignment:
-                              Alignment.centerLeft,
+                              alignment: Alignment.centerLeft,
 
                               child: Text(
                                 'Select Time Period',
                                 style: TextStyle(
                                   fontSize: 18,
-                                  fontWeight:
-                                  FontWeight.bold,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
                           ),
 
-                          _filterOption(
-                            context,
-                            'Today',
-                            Icons.today,
-                          ),
+                          _filterOption(context, 'Today', Icons.today),
 
                           _filterOption(
                             context,
@@ -507,18 +440,14 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
               child: Container(
                 width: double.infinity,
 
-                padding:
-                const EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 13,
                 ),
 
                 decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.grey.shade300,
-                  ),
-                  borderRadius:
-                  BorderRadius.circular(10),
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(10),
                   color: Colors.grey.shade50,
                 ),
 
@@ -534,16 +463,11 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
                     Expanded(
                       child: Text(
                         displayText,
-                        style: const TextStyle(
-                          fontWeight:
-                          FontWeight.w600,
-                        ),
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
 
-                    const Icon(
-                      Icons.keyboard_arrow_down,
-                    ),
+                    const Icon(Icons.keyboard_arrow_down),
                   ],
                 ),
               ),
@@ -554,24 +478,14 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
     );
   }
 
-  Widget _filterOption(
-      BuildContext context,
-      String title,
-      IconData icon,
-      ) {
+  Widget _filterOption(BuildContext context, String title, IconData icon) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: Colors.lightBlue,
-      ),
+      leading: Icon(icon, color: Colors.lightBlue),
 
       title: Text(title),
 
       trailing: selectedFilter == title
-          ? const Icon(
-        Icons.check,
-        color: Colors.lightBlue,
-      )
+          ? const Icon(Icons.check, color: Colors.lightBlue)
           : null,
 
       onTap: () {
@@ -608,9 +522,7 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
     return Card(
       elevation: 2,
 
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
 
       child: Padding(
         padding: const EdgeInsets.all(30),
@@ -628,10 +540,7 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
 
               const Text(
                 'No Quiz Attempts',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 6),
@@ -639,9 +548,7 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
               Text(
                 'You have no quiz attempts $periodText.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.black54,
-                ),
+                style: const TextStyle(color: Colors.black54),
               ),
             ],
           ),
@@ -654,36 +561,25 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
   // SUMMARY CARD
   // =============================================================
 
-  Widget _summaryCard(
-      String title,
-      String value,
-      IconData icon,
-      ) {
+  Widget _summaryCard(String title, String value, IconData icon) {
     return Expanded(
       child: Card(
         elevation: 2,
 
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
 
         child: Padding(
           padding: const EdgeInsets.all(16),
 
           child: Column(
             children: [
-              Icon(
-                icon,
-                color: Colors.blue,
-              ),
+              Icon(icon, color: Colors.blue),
 
               const SizedBox(height: 8),
 
               Text(
                 title,
-                style: const TextStyle(
-                  color: Colors.black54,
-                ),
+                style: const TextStyle(color: Colors.black54),
                 textAlign: TextAlign.center,
               ),
 
@@ -715,38 +611,25 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
     return Card(
       elevation: 2,
 
-      margin: const EdgeInsets.only(
-        bottom: 20,
-      ),
+      margin: const EdgeInsets.only(bottom: 20),
 
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
 
       child: Padding(
         padding: const EdgeInsets.all(16),
 
         child: Column(
-          crossAxisAlignment:
-          CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
 
           children: [
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 4),
 
-            Text(
-              description,
-              style: const TextStyle(
-                color: Colors.black54,
-              ),
-            ),
+            Text(description, style: const TextStyle(color: Colors.black54)),
 
             const SizedBox(height: 16),
 
@@ -762,10 +645,10 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
   // =============================================================
 
   Future<void> _showAttemptDetails(
-      BuildContext context,
-      Map<String, dynamic> data,
-      int attemptNumber,
-      ) async {
+    BuildContext context,
+    Map<String, dynamic> data,
+    int attemptNumber,
+  ) async {
     final timestamp = data['attemptedAt'];
 
     String dateTimeText = 'Unknown date';
@@ -774,7 +657,7 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
       final date = timestamp.toDate();
 
       dateTimeText =
-      '${date.day}/${date.month}/${date.year}'
+          '${date.day}/${date.month}/${date.year}'
           ' • '
           '${date.hour}:${date.minute.toString().padLeft(2, '0')}';
     }
@@ -784,20 +667,15 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
     final score = data['score']?.toString() ?? '0';
     final total = data['total']?.toString() ?? '0';
 
-    final accuracy =
-        int.tryParse(data['accuracy']?.toString() ?? '') ?? 0;
+    final accuracy = int.tryParse(data['accuracy']?.toString() ?? '') ?? 0;
 
-    final university =
-        data['university']?.toString() ?? '';
+    final university = data['university']?.toString() ?? '';
 
-    final department =
-        data['department']?.toString() ?? '';
+    final department = data['department']?.toString() ?? '';
 
-    final semester =
-        data['semester']?.toString() ?? '';
+    final semester = data['semester']?.toString() ?? '';
 
-    final campus =
-        data['location']?.toString() ?? '';
+    final campus = data['location']?.toString() ?? '';
 
     await showDialog(
       context: context,
@@ -839,29 +717,13 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _detailRow(
-                  Icons.menu_book_outlined,
-                  'Subject',
-                  subject,
-                ),
+                _detailRow(Icons.menu_book_outlined, 'Subject', subject),
 
-                _detailRow(
-                  Icons.access_time,
-                  'Date & Time',
-                  dateTimeText,
-                ),
+                _detailRow(Icons.access_time, 'Date & Time', dateTimeText),
 
-                _detailRow(
-                  Icons.star_outline,
-                  'Score',
-                  '$score / $total',
-                ),
+                _detailRow(Icons.star_outline, 'Score', '$score / $total'),
 
-                _detailRow(
-                  Icons.percent,
-                  'Accuracy',
-                  '$accuracy%',
-                ),
+                _detailRow(Icons.percent, 'Accuracy', '$accuracy%'),
 
                 if (university.isNotEmpty)
                   _detailRow(
@@ -871,25 +733,13 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
                   ),
 
                 if (department.isNotEmpty)
-                  _detailRow(
-                    Icons.school_outlined,
-                    'Department',
-                    department,
-                  ),
+                  _detailRow(Icons.school_outlined, 'Department', department),
 
                 if (semester.isNotEmpty)
-                  _detailRow(
-                    Icons.layers_outlined,
-                    'Semester',
-                    semester,
-                  ),
+                  _detailRow(Icons.layers_outlined, 'Semester', semester),
 
                 if (campus.isNotEmpty)
-                  _detailRow(
-                    Icons.location_on_outlined,
-                    'Campus',
-                    campus,
-                  ),
+                  _detailRow(Icons.location_on_outlined, 'Campus', campus),
               ],
             ),
           ),
@@ -907,18 +757,11 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
     );
   }
 
-  Widget _detailRow(
-      IconData icon,
-      String label,
-      String value,
-      ) {
+  Widget _detailRow(IconData icon, String label, String value) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
 
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 9,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
 
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
@@ -929,26 +772,18 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
 
         children: [
-          Icon(
-            icon,
-            size: 19,
-            color: Colors.lightBlue,
-          ),
+          Icon(icon, size: 19, color: Colors.lightBlue),
 
           const SizedBox(width: 10),
 
           Expanded(
             child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Colors.black54,
-                  ),
+                  style: const TextStyle(fontSize: 11, color: Colors.black54),
                 ),
 
                 const SizedBox(height: 2),
@@ -968,15 +803,11 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
     );
   }
 
-  Widget _lineChart(
-      List<FlSpot> spots,
-      List<QueryDocumentSnapshot> docs,
-      ) {
+  Widget _lineChart(List<FlSpot> spots, List<QueryDocumentSnapshot> docs) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
 
-      physics:
-      const BouncingScrollPhysics(),
+      physics: const BouncingScrollPhysics(),
 
       child: Padding(
         padding: const EdgeInsets.all(8),
@@ -994,12 +825,8 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
                 show: true,
                 horizontalInterval: 20,
 
-                getDrawingHorizontalLine:
-                    (value) => FlLine(
-                  color:
-                  Colors.grey.withOpacity(0.2),
-                  strokeWidth: 1,
-                ),
+                getDrawingHorizontalLine: (value) =>
+                    FlLine(color: Colors.grey.withOpacity(0.2), strokeWidth: 1),
               ),
 
               lineTouchData: LineTouchData(
@@ -1021,124 +848,74 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
                       return;
                     }
 
-                    final data =
-                    docs[index].data()
-                    as Map<String, dynamic>;
+                    final data = docs[index].data() as Map<String, dynamic>;
 
-                    _showAttemptDetails(
-                      context,
-                      data,
-                      index + 1,
-                    );
+                    _showAttemptDetails(context, data, index + 1);
                   }
                 },
               ),
 
-              titlesData:
-              FlTitlesData(
-                topTitles:
-                AxisTitles(
-                  sideTitles:
-                  SideTitles(
+              titlesData: FlTitlesData(
+                topTitles: AxisTitles(
+                  sideTitles: SideTitles(
                     showTitles: true,
 
-                    getTitlesWidget:
-                        (value, meta) {
-                      final index =
-                      value.isFinite
-                          ? value.toInt()
-                          : 0;
+                    getTitlesWidget: (value, meta) {
+                      final index = value.isFinite ? value.toInt() : 0;
 
-                      if (index >=
-                          spots.length) {
+                      if (index >= spots.length) {
                         return const SizedBox();
                       }
 
                       return Text(
                         '${spots[index].y.toInt()}%',
-                        style:
-                        const TextStyle(
-                          fontSize: 10,
-                        ),
+                        style: const TextStyle(fontSize: 10),
                       );
                     },
                   ),
                 ),
 
-                rightTitles:
-                const AxisTitles(
-                  sideTitles:
-                  SideTitles(
-                    showTitles: false,
-                  ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
                 ),
 
-                leftTitles:
-                AxisTitles(
-                  sideTitles:
-                  SideTitles(
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
                     showTitles: true,
                     interval: 20,
                     reservedSize: 40,
 
-                    getTitlesWidget:
-                        (value, _) =>
-                        Text(
-                          '${value.toInt()}%',
-                          style:
-                          const TextStyle(
-                            fontSize: 10,
-                          ),
-                        ),
+                    getTitlesWidget: (value, _) => Text(
+                      '${value.toInt()}%',
+                      style: const TextStyle(fontSize: 10),
+                    ),
                   ),
                 ),
 
-                bottomTitles:
-                AxisTitles(
-                  sideTitles:
-                  SideTitles(
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
                     showTitles: true,
                     interval: 1,
 
-                    getTitlesWidget:
-                        (value, _) {
-                      final index =
-                      value.isFinite
-                          ? value.toInt()
-                          : 0;
+                    getTitlesWidget: (value, _) {
+                      final index = value.isFinite ? value.toInt() : 0;
 
-                      if (index < 0 ||
-                          index >=
-                              docs.length) {
+                      if (index < 0 || index >= docs.length) {
                         return const SizedBox();
                       }
 
-                      final data =
-                      docs[index]
-                          .data()
-                      as Map<String,
-                          dynamic>;
+                      final data = docs[index].data() as Map<String, dynamic>;
 
-                      final timestamp =
-                      data['attemptedAt'];
+                      final timestamp = data['attemptedAt'];
 
-                      if (timestamp
-                      is Timestamp) {
-                        final date =
-                        timestamp.toDate();
+                      if (timestamp is Timestamp) {
+                        final date = timestamp.toDate();
 
                         return Padding(
-                          padding:
-                          const EdgeInsets
-                              .only(
-                            top: 6,
-                          ),
+                          padding: const EdgeInsets.only(top: 6),
                           child: Text(
                             '${date.day}/${date.month}',
-                            style:
-                            const TextStyle(
-                              fontSize: 9,
-                            ),
+                            style: const TextStyle(fontSize: 9),
                           ),
                         );
                       }
@@ -1149,10 +926,7 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
                 ),
               ),
 
-              borderData:
-              FlBorderData(
-                show: false,
-              ),
+              borderData: FlBorderData(show: false),
 
               lineBarsData: [
                 LineChartBarData(
@@ -1165,35 +939,26 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
                   dotData: FlDotData(
                     show: true,
 
-                    getDotPainter:
-                        (_, __, ___, ____) =>
-                        FlDotCirclePainter(
-                          radius: 4,
-                          color: Colors.white,
-                          strokeWidth: 3,
-                          strokeColor:
-                          Colors.blue,
-                        ),
+                    getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(
+                      radius: 4,
+                      color: Colors.white,
+                      strokeWidth: 3,
+                      strokeColor: Colors.blue,
+                    ),
                   ),
 
-                  belowBarData:
-                  BarAreaData(
+                  belowBarData: BarAreaData(
                     show: true,
 
-                    gradient:
-                    LinearGradient(
+                    gradient: LinearGradient(
                       colors: [
-                        Colors.blue
-                            .withOpacity(0.2),
-                        Colors.blue
-                            .withOpacity(0.2),
+                        Colors.blue.withOpacity(0.2),
+                        Colors.blue.withOpacity(0.2),
                       ],
 
-                      begin:
-                      Alignment.topCenter,
+                      begin: Alignment.topCenter,
 
-                      end:
-                      Alignment.bottomCenter,
+                      end: Alignment.bottomCenter,
                     ),
                   ),
                 ),
@@ -1211,14 +976,13 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
   // =============================================================
 
   Widget _barChart(
-      List<BarChartGroupData> bars,
-      List<QueryDocumentSnapshot> docs,
-      ) {
+    List<BarChartGroupData> bars,
+    List<QueryDocumentSnapshot> docs,
+  ) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
 
-      physics:
-      const BouncingScrollPhysics(),
+      physics: const BouncingScrollPhysics(),
 
       child: SizedBox(
         width: bars.length * 75,
@@ -1228,19 +992,14 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
           BarChartData(
             maxY: 100,
 
-            alignment:
-            BarChartAlignment.spaceAround,
+            alignment: BarChartAlignment.spaceAround,
 
             gridData: FlGridData(
               show: true,
               horizontalInterval: 20,
 
-              getDrawingHorizontalLine:
-                  (value) => FlLine(
-                color:
-                Colors.grey.withOpacity(0.2),
-                strokeWidth: 1,
-              ),
+              getDrawingHorizontalLine: (value) =>
+                  FlLine(color: Colors.grey.withOpacity(0.2), strokeWidth: 1),
             ),
 
             barTouchData: BarTouchData(
@@ -1260,155 +1019,100 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
                     return;
                   }
 
-                  final data =
-                  docs[index].data()
-                  as Map<String, dynamic>;
+                  final data = docs[index].data() as Map<String, dynamic>;
 
-                  _showAttemptDetails(
-                    context,
-                    data,
-                    index + 1,
-                  );
+                  _showAttemptDetails(context, data, index + 1);
                 }
               },
             ),
 
-            titlesData:
-            FlTitlesData(
-              topTitles:
-              AxisTitles(
-                sideTitles:
-                SideTitles(
+            titlesData: FlTitlesData(
+              topTitles: AxisTitles(
+                sideTitles: SideTitles(
                   showTitles: true,
 
-                  getTitlesWidget:
-                      (value, meta) {
-                    final index =
-                    value.isFinite
-                        ? value.toInt()
-                        : 0;
+                  getTitlesWidget: (value, meta) {
+                    final index = value.isFinite ? value.toInt() : 0;
 
-                    if (index < 0 ||
-                        index >=
-                            bars.length) {
+                    if (index < 0 || index >= bars.length) {
                       return const SizedBox();
                     }
 
-                    final y = bars[index]
-                        .barRods
-                        .first
-                        .toY;
+                    final y = bars[index].barRods.first.toY;
 
                     return Text(
                       '${y.toInt()}%',
-                      style:
-                      const TextStyle(
+                      style: const TextStyle(
                         fontSize: 10,
-                        fontWeight:
-                        FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                       ),
                     );
                   },
                 ),
               ),
 
-              rightTitles:
-              const AxisTitles(
-                sideTitles:
-                SideTitles(
-                  showTitles: false,
-                ),
+              rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
               ),
 
-              leftTitles:
-              AxisTitles(
-                sideTitles:
-                SideTitles(
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(
                   showTitles: true,
                   interval: 20,
                   reservedSize: 40,
 
-                  getTitlesWidget:
-                      (value, _) =>
-                      Text(
-                        '${value.toInt()}%',
-                        style:
-                        const TextStyle(
-                          fontSize: 10,
-                        ),
-                      ),
+                  getTitlesWidget: (value, _) => Text(
+                    '${value.toInt()}%',
+                    style: const TextStyle(fontSize: 10),
+                  ),
                 ),
               ),
 
-              bottomTitles:
-              AxisTitles(
-                sideTitles:
-                SideTitles(
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
                   showTitles: true,
                   reservedSize: 42,
 
-                  getTitlesWidget:
-                      (value, _) {
-                    final index =
-                    value.isFinite
-                        ? value.toInt()
-                        : 0;
+                  getTitlesWidget: (value, _) {
+                    final index = value.isFinite ? value.toInt() : 0;
 
-                    if (index < 0 ||
-                        index >=
-                            docs.length) {
+                    if (index < 0 || index >= docs.length) {
                       return const SizedBox();
                     }
 
-                    final data =
-                    docs[index]
-                        .data()
-                    as Map<String,
-                        dynamic>;
+                    final data = docs[index].data() as Map<String, dynamic>;
 
-                    final timestamp =
-                    data['attemptedAt'];
+                    final timestamp = data['attemptedAt'];
 
                     String dateText = '';
 
-                    if (timestamp
-                    is Timestamp) {
-                      final date =
-                      timestamp.toDate();
+                    if (timestamp is Timestamp) {
+                      final date = timestamp.toDate();
 
-                      dateText =
-                      '${date.day}/${date.month}';
+                      dateText = '${date.day}/${date.month}';
                     }
 
                     return Padding(
-                      padding:
-                      const EdgeInsets.only(
-                        top: 5,
-                      ),
+                      padding: const EdgeInsets.only(top: 5),
 
                       child: Column(
-                        mainAxisSize:
-                        MainAxisSize.min,
+                        mainAxisSize: MainAxisSize.min,
 
                         children: [
                           Text(
                             'A${index + 1}',
-                            style:
-                            const TextStyle(
+                            style: const TextStyle(
                               fontSize: 10,
-                              fontWeight:
-                              FontWeight.bold,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
 
                           if (dateText.isNotEmpty)
                             Text(
                               dateText,
-                              style:
-                              const TextStyle(
+                              style: const TextStyle(
                                 fontSize: 8,
-                                color:
-                                Colors.grey,
+                                color: Colors.grey,
                               ),
                             ),
                         ],
@@ -1419,34 +1123,21 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
               ),
             ),
 
-            borderData:
-            FlBorderData(
-              show: false,
-            ),
+            borderData: FlBorderData(show: false),
 
-            barGroups:
-            bars.map((group) {
-              final y = group
-                  .barRods
-                  .first
-                  .toY;
+            barGroups: bars.map((group) {
+              final y = group.barRods.first.toY;
 
-              final double safeY =
-              y.isFinite
-                  ? (y == 0 ? 2 : y)
-                  : 0;
+              final double safeY = y.isFinite ? (y == 0 ? 2 : y) : 0;
 
               Color barColor;
 
               if (y >= 75) {
-                barColor =
-                    Colors.blueAccent;
+                barColor = Colors.blueAccent;
               } else if (y >= 50) {
-                barColor =
-                    Colors.orange;
+                barColor = Colors.orange;
               } else {
-                barColor =
-                    Colors.red;
+                barColor = Colors.red;
               }
 
               return BarChartGroupData(
@@ -1457,25 +1148,17 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
                     toY: safeY,
                     width: 20,
 
-                    borderRadius:
-                    BorderRadius.circular(
-                      8,
-                    ),
+                    borderRadius: BorderRadius.circular(8),
 
-                    gradient:
-                    LinearGradient(
+                    gradient: LinearGradient(
                       colors: [
-                        barColor
-                            .withAlpha(230),
-                        barColor
-                            .withAlpha(128),
+                        barColor.withAlpha(230),
+                        barColor.withAlpha(128),
                       ],
 
-                      begin:
-                      Alignment.topCenter,
+                      begin: Alignment.topCenter,
 
-                      end:
-                      Alignment.bottomCenter,
+                      end: Alignment.bottomCenter,
                     ),
                   ),
                 ],
@@ -1491,11 +1174,7 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
   // PIE CHART
   // =============================================================
 
-  Widget _pieChart(
-      int excellent,
-      int average,
-      int poor,
-      ) {
+  Widget _pieChart(int excellent, int average, int poor) {
     return Column(
       children: [
         SizedBox(
@@ -1508,28 +1187,22 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
 
               sections: [
                 PieChartSectionData(
-                  value:
-                  excellent.toDouble(),
-                  title:
-                  '$excellent',
+                  value: excellent.toDouble(),
+                  title: '$excellent',
                   color: Colors.green,
                   radius: 50,
                 ),
 
                 PieChartSectionData(
-                  value:
-                  average.toDouble(),
-                  title:
-                  '$average',
+                  value: average.toDouble(),
+                  title: '$average',
                   color: Colors.orange,
                   radius: 50,
                 ),
 
                 PieChartSectionData(
-                  value:
-                  poor.toDouble(),
-                  title:
-                  '$poor',
+                  value: poor.toDouble(),
+                  title: '$poor',
                   color: Colors.red,
                   radius: 50,
                 ),
@@ -1541,24 +1214,14 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
         const SizedBox(height: 10),
 
         Row(
-          mainAxisAlignment:
-          MainAxisAlignment.spaceEvenly,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
 
           children: [
-            _legend(
-              'Excellent',
-              Colors.green,
-            ),
+            _legend('Excellent', Colors.green),
 
-            _legend(
-              'Average',
-              Colors.orange,
-            ),
+            _legend('Average', Colors.orange),
 
-            _legend(
-              'Poor',
-              Colors.red,
-            ),
+            _legend('Poor', Colors.red),
           ],
         ),
       ],
@@ -1569,17 +1232,10 @@ class _QuizPerformanceScreenState extends State<QuizPerformanceScreen> {
   // LEGEND
   // =============================================================
 
-  Widget _legend(
-      String text,
-      Color color,
-      ) {
+  Widget _legend(String text, Color color) {
     return Row(
       children: [
-        Container(
-          width: 10,
-          height: 10,
-          color: color,
-        ),
+        Container(width: 10, height: 10, color: color),
 
         const SizedBox(width: 4),
 

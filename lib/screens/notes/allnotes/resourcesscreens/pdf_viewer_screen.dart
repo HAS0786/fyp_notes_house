@@ -41,7 +41,7 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
 
   }
 
-  // 🔹 Detect file type
+  // Detect file type
   bool isPdf(String path) => path.toLowerCase().endsWith(".pdf");
 
   bool isImage(String path) =>
@@ -49,25 +49,8 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
           path.toLowerCase().endsWith(".jpg") ||
           path.toLowerCase().endsWith(".jpeg");
 
-  // Future<void> _downloadTempFile() async {
-  //   try {
-  //     final response = await http.get(Uri.parse(widget.fileUrl));
-  //
-  //     final dir = await getTemporaryDirectory();
-  //     final file = File('${dir.path}/${widget.title}.pdf');
-  //
-  //     await file.writeAsBytes(response.bodyBytes);
-  //
-  //     setState(() {
-  //       localPath = file.path;
-  //       loading = false;
-  //     });
-  //   } catch (e) {
-  //     _showMessage('Failed to load file');
-  //   }
-  // }
 
-  // 🔹 Save for offline use
+  //  Save for offline use
 
   Future<void> _downloadTempFile() async {
     try {
@@ -136,7 +119,6 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
   Future<void> _downloadOffline() async {
     try {
       final dir = await getApplicationDocumentsDirectory();
-      // final file = File('${dir.path}/${widget.title}');
       final file = File('${dir.path}/${widget.title}.pdf');
 
 

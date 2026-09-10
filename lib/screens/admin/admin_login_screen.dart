@@ -16,6 +16,15 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   bool hidePass = true;
 
   Future<void> loginAdmin() async {
+    if (emailCtrl.text.trim().isEmpty ||
+        passCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter email and password."),
+        ),
+      );
+      return;
+    }
     setState(() => loading = true);
 
     try {
@@ -36,11 +45,38 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
       Navigator.pushReplacementNamed(context, '/admin-approve');
     } catch (e) {
+      String message = "Login failed. Please try again.";
+
+      if (e is FirebaseAuthException) {
+        switch (e.code) {
+          case 'invalid-credential':
+            message = "Invalid email or password.";
+            break;
+          case 'user-disabled':
+            message = "This admin account has been disabled.";
+            break;
+          case 'too-many-requests':
+            message = "Too many attempts. Please try again later.";
+            break;
+          case 'network-request-failed':
+            message = "Network error. Please check your internet connection.";
+            break;
+          default:
+            message = e.message ?? message;
+        }
+      } else {
+        message = e.toString();
+      }
+
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(content: Text(message)),
       );
     } finally {
-      setState(() => loading = false);
+      if (mounted) {
+        setState(() => loading = false);
+      }
     }
   }
 

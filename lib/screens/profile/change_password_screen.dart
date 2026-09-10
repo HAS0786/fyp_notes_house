@@ -48,9 +48,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   }
 
   void _show(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   @override
@@ -93,9 +91,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       obscureText: true,
       decoration: InputDecoration(
         labelText: label,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

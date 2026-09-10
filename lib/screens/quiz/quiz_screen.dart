@@ -91,7 +91,7 @@ class _QuizScreenState extends State<QuizScreen> {
     super.dispose();
   }
 
-  // 🔥 API (only for teacher quizzes)
+  //  API (only for teacher quizzes)
   Future<Map<String, dynamic>?> fetchQuizFromAPI() async {
     try {
       final url =Uri.parse("$baseUrl/get-quiz/${widget.quizId}");
@@ -404,7 +404,7 @@ class _QuizScreenState extends State<QuizScreen> {
           return buildQuizUI();
         },
       )
-          : buildQuizUI(), // 🔥 AI quiz direct
+          : buildQuizUI(), //  AI quiz direct
     );
   }
 }

@@ -38,10 +38,10 @@ class _AIQuizEditScreenState extends State<AIQuizEditScreen> {
     quiz[qIndex]["options"][oIndex] = value;
   }
 
-
   Future<void> _saveQuiz() async {
     Navigator.pop(context, quiz);
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,9 +83,7 @@ class _AIQuizEditScreenState extends State<AIQuizEditScreen> {
               ),
               child: const Text(
                 "Upload",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -97,48 +95,46 @@ class _AIQuizEditScreenState extends State<AIQuizEditScreen> {
           final q = quiz[i];
           int correctIndex = 0;
 
-// CASE 1: correct is already index
+          // CASE 1: correct is already index
           if (q["correct"] is int) {
             correctIndex = q["correct"];
           }
-
-// CASE 2: correct is letter (A, B, C, D)
+          // CASE 2: correct is letter (A, B, C, D)
           else if (q["correct"] is String) {
             final letter = q["correct"].toString().trim().toUpperCase();
             correctIndex = letter.codeUnitAt(0) - 65; // A=0, B=1
           }
-
-// CASE 3: answer is index
+          // CASE 3: answer is index
           else if (q["answer"] is int) {
             correctIndex = q["answer"];
           }
-
-// CASE 4: answer is letter
+          // CASE 4: answer is letter
           else if (q["answer"] is String &&
               q["answer"].toString().length == 1) {
             final letter = q["answer"].toString().toUpperCase();
             correctIndex = letter.codeUnitAt(0) - 65;
           }
-
-// CASE 5: answer is text
+          // CASE 5: answer is text
           else if (q["answer"] != null && q["options"] != null) {
             final answer = q["answer"].toString().trim().toLowerCase();
 
-            correctIndex = q["options"].indexWhere((opt) =>
-            opt.toString().trim().toLowerCase() == answer);
+            correctIndex = q["options"].indexWhere(
+              (opt) => opt.toString().trim().toLowerCase() == answer,
+            );
 
             if (correctIndex == -1) {
-              correctIndex = q["options"].indexWhere((opt) =>
-                  opt.toString().toLowerCase().contains(answer));
+              correctIndex = q["options"].indexWhere(
+                (opt) => opt.toString().toLowerCase().contains(answer),
+              );
             }
           }
 
-// FINAL SAFETY
+          // FINAL SAFETY
           if (correctIndex < 0 || correctIndex >= q["options"].length) {
             correctIndex = 0;
           }
 
-// SYNC BACK
+          // SYNC BACK
           q["correct"] = correctIndex;
 
           return Card(
@@ -170,17 +166,20 @@ class _AIQuizEditScreenState extends State<AIQuizEditScreen> {
                   const SizedBox(height: 10),
 
                   ...List.generate(q["options"].length, (j) {
-
-                    // ⭐ check correct option
+                    //  check correct option
                     final isCorrect = j == (q["correct"] ?? 0);
 
                     return Container(
                       margin: const EdgeInsets.symmetric(vertical: 6),
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: isCorrect ? Colors.green.withOpacity(0.2) : Colors.grey.shade100,
+                        color: isCorrect
+                            ? Colors.green.withOpacity(0.2)
+                            : Colors.grey.shade100,
                         border: Border.all(
-                          color: isCorrect ? Colors.green : Colors.grey.shade300,
+                          color: isCorrect
+                              ? Colors.green
+                              : Colors.grey.shade300,
                           width: 1.2,
                         ),
                         borderRadius: BorderRadius.circular(10),
@@ -189,19 +188,24 @@ class _AIQuizEditScreenState extends State<AIQuizEditScreen> {
                         children: [
                           CircleAvatar(
                             radius: 12,
-                            backgroundColor:
-                            isCorrect ? Colors.green : Colors.grey.shade400,
+                            backgroundColor: isCorrect
+                                ? Colors.green
+                                : Colors.grey.shade400,
                             child: Text(
                               String.fromCharCode(65 + j), // A B C D
-                              style: const TextStyle(fontSize: 12, color: Colors.white),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 10),
 
                           Expanded(
                             child: TextField(
-                              controller:
-                              TextEditingController(text: q["options"][j]),
+                              controller: TextEditingController(
+                                text: q["options"][j],
+                              ),
                               onChanged: (v) => updateOption(i, j, v),
                               decoration: const InputDecoration(
                                 border: InputBorder.none,

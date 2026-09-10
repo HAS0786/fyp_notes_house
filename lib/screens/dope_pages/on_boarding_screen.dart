@@ -4,7 +4,6 @@ import 'package:fyp_ui_design/screens/dope_pages/dope_page2.dart';
 import 'package:fyp_ui_design/screens/dope_pages/dope_page3.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-
 class OnBoardingScreen extends StatefulWidget {
   const OnBoardingScreen({super.key});
 
@@ -35,11 +34,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                 isLastPage = index == 2;
               });
             },
-            children: const [
-              Intro_Page1(),
-              Intro_Page2(),
-              Intro_Page3(),
-            ],
+            children: const [Intro_Page1(), Intro_Page2(), Intro_Page3()],
           ),
 
           /// Bottom controls
@@ -54,28 +49,20 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                   },
                   child: const Text(
                     'Skip',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
 
                 SmoothPageIndicator(
                   controller: _pageController,
                   count: 3,
-                  effect: const SwapEffect(
-                    activeDotColor: Colors.blue,
-                  ),
+                  effect: const SwapEffect(activeDotColor: Colors.blue),
                 ),
 
                 GestureDetector(
                   onTap: () {
                     if (isLastPage) {
-                      Navigator.pushReplacementNamed(
-                        context,
-                        '/choose-role',
-                      );
+                      Navigator.pushReplacementNamed(context, '/choose-role');
                     } else {
                       _pageController.nextPage(
                         duration: const Duration(milliseconds: 400),

@@ -8,8 +8,7 @@ class QuizHistoryScreen extends StatefulWidget {
   const QuizHistoryScreen({super.key});
 
   @override
-  State<QuizHistoryScreen> createState() =>
-      _QuizHistoryScreenState();
+  State<QuizHistoryScreen> createState() => _QuizHistoryScreenState();
 }
 
 class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
@@ -26,41 +25,28 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
   bool _isDateInFilter(DateTime date) {
     final now = DateTime.now();
 
-    final today = DateTime(
-      now.year,
-      now.month,
-      now.day,
-    );
+    final today = DateTime(now.year, now.month, now.day);
 
-    final dateOnly = DateTime(
-      date.year,
-      date.month,
-      date.day,
-    );
+    final dateOnly = DateTime(date.year, date.month, date.day);
 
     switch (selectedFilter) {
       case 'Today':
         return dateOnly == today;
 
       case 'Yesterday':
-        final yesterday =
-        today.subtract(const Duration(days: 1));
+        final yesterday = today.subtract(const Duration(days: 1));
 
         return dateOnly == yesterday;
 
       case 'Last 7 Days':
-        final start =
-        today.subtract(const Duration(days: 6));
+        final start = today.subtract(const Duration(days: 6));
 
-        return !dateOnly.isBefore(start) &&
-            !dateOnly.isAfter(today);
+        return !dateOnly.isBefore(start) && !dateOnly.isAfter(today);
 
       case 'Last 28 Days':
-        final start =
-        today.subtract(const Duration(days: 27));
+        final start = today.subtract(const Duration(days: 27));
 
-        return !dateOnly.isBefore(start) &&
-            !dateOnly.isAfter(today);
+        return !dateOnly.isBefore(start) && !dateOnly.isAfter(today);
 
       case 'Custom Date':
         if (selectedDate == null) {
@@ -76,8 +62,7 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
         return dateOnly == selected;
 
       case 'Custom Range':
-        if (customStartDate == null ||
-            customEndDate == null) {
+        if (customStartDate == null || customEndDate == null) {
           return true;
         }
 
@@ -93,8 +78,7 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
           customEndDate!.day,
         );
 
-        return !dateOnly.isBefore(start) &&
-            !dateOnly.isAfter(end);
+        return !dateOnly.isBefore(start) && !dateOnly.isAfter(end);
 
       case 'All Dates':
       default:
@@ -153,13 +137,10 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
   // =============================================================
 
   Future<void> _openFilterMenu() async {
-    final result =
-    await showModalBottomSheet<String>(
+    final result = await showModalBottomSheet<String>(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
         return SafeArea(
@@ -172,55 +153,24 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'Filter Quiz History',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
 
-              _filterOption(
-                context,
-                'All Dates',
-                Icons.history,
-              ),
+              _filterOption(context, 'All Dates', Icons.history),
 
-              _filterOption(
-                context,
-                'Today',
-                Icons.today,
-              ),
+              _filterOption(context, 'Today', Icons.today),
 
-              _filterOption(
-                context,
-                'Yesterday',
-                Icons.event,
-              ),
+              _filterOption(context, 'Yesterday', Icons.event),
 
-              _filterOption(
-                context,
-                'Last 7 Days',
-                Icons.date_range,
-              ),
+              _filterOption(context, 'Last 7 Days', Icons.date_range),
 
-              _filterOption(
-                context,
-                'Last 28 Days',
-                Icons.calendar_month,
-              ),
+              _filterOption(context, 'Last 28 Days', Icons.calendar_month),
 
-              _filterOption(
-                context,
-                'Custom Date',
-                Icons.calendar_today,
-              ),
+              _filterOption(context, 'Custom Date', Icons.calendar_today),
 
-              _filterOption(
-                context,
-                'Custom Range',
-                Icons.date_range_outlined,
-              ),
+              _filterOption(context, 'Custom Range', Icons.date_range_outlined),
 
               const SizedBox(height: 10),
             ],
@@ -249,22 +199,12 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
     });
   }
 
-  Widget _filterOption(
-      BuildContext context,
-      String title,
-      IconData icon,
-      ) {
+  Widget _filterOption(BuildContext context, String title, IconData icon) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: Colors.lightBlue,
-      ),
+      leading: Icon(icon, color: Colors.lightBlue),
       title: Text(title),
       trailing: selectedFilter == title
-          ? const Icon(
-        Icons.check,
-        color: Colors.lightBlue,
-      )
+          ? const Icon(Icons.check, color: Colors.lightBlue)
           : null,
       onTap: () {
         Navigator.pop(context, title);
@@ -277,8 +217,7 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
   // =============================================================
 
   String _getFilterLabel() {
-    if (selectedFilter == 'Custom Date' &&
-        selectedDate != null) {
+    if (selectedFilter == 'Custom Date' && selectedDate != null) {
       return '${selectedDate!.day}/'
           '${selectedDate!.month}/'
           '${selectedDate!.year}';
@@ -305,8 +244,7 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user =
-    FirebaseAuth.instance.currentUser!;
+    final user = FirebaseAuth.instance.currentUser!;
 
     return Scaffold(
       appBar: AppBar(
@@ -317,9 +255,7 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
         actions: [
           IconButton(
             tooltip: 'Filter History',
-            icon: const Icon(
-              Icons.filter_alt_outlined,
-            ),
+            icon: const Icon(Icons.filter_alt_outlined),
             onPressed: _openFilterMenu,
           ),
         ],
@@ -328,45 +264,31 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('quiz_attempts')
-            .where(
-          'userId',
-          isEqualTo: user.uid,
-        )
-            .orderBy(
-          'attemptedAt',
-          descending: true,
-        )
+            .where('userId', isEqualTo: user.uid)
+            .orderBy('attemptedAt', descending: true)
             .snapshots(),
 
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
-          final allAttempts =
-              snapshot.data!.docs;
+          final allAttempts = snapshot.data!.docs;
 
           // =====================================================
           // FILTER ATTEMPTS
           // =====================================================
 
-          final attempts =
-          allAttempts.where((doc) {
-            final data =
-            doc.data()
-            as Map<String, dynamic>;
+          final attempts = allAttempts.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
 
-            final timestamp =
-            data['attemptedAt'];
+            final timestamp = data['attemptedAt'];
 
             if (timestamp is! Timestamp) {
               return false;
             }
 
-            final dateTime =
-            timestamp.toDate();
+            final dateTime = timestamp.toDate();
 
             return _isDateInFilter(dateTime);
           }).toList();
@@ -380,22 +302,14 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
               if (selectedFilter != 'All Dates')
                 Container(
                   width: double.infinity,
-                  margin: const EdgeInsets.fromLTRB(
-                    12,
-                    12,
-                    12,
-                    4,
-                  ),
-                  padding:
-                  const EdgeInsets.symmetric(
+                  margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 9,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.lightBlue
-                        .withOpacity(0.08),
-                    borderRadius:
-                    BorderRadius.circular(10),
+                    color: Colors.lightBlue.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     children: [
@@ -411,10 +325,8 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
                         child: Text(
                           _getFilterLabel(),
                           style: const TextStyle(
-                            fontWeight:
-                            FontWeight.w600,
-                            color:
-                            Colors.lightBlue,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.lightBlue,
                           ),
                         ),
                       ),
@@ -422,8 +334,7 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
                       GestureDetector(
                         onTap: () {
                           setState(() {
-                            selectedFilter =
-                            'All Dates';
+                            selectedFilter = 'All Dates';
                             selectedDate = null;
                             customStartDate = null;
                             customEndDate = null;
@@ -442,19 +353,16 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
               // =================================================
               // NO RESULTS
               // =================================================
-
               if (attempts.isEmpty)
                 Expanded(
                   child: Center(
                     child: Column(
-                      mainAxisSize:
-                      MainAxisSize.min,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           Icons.search_off,
                           size: 55,
-                          color:
-                          Colors.grey.shade400,
+                          color: Colors.grey.shade400,
                         ),
 
                         const SizedBox(height: 12),
@@ -463,73 +371,54 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
                           'No Quiz Attempts Found',
                           style: TextStyle(
                             fontSize: 18,
-                            fontWeight:
-                            FontWeight.bold,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
 
                         const SizedBox(height: 6),
 
                         Text(
-                          selectedFilter ==
-                              'All Dates'
+                          selectedFilter == 'All Dates'
                               ? 'No quiz attempts yet.'
                               : 'No attempts found for this date filter.',
-                          textAlign:
-                          TextAlign.center,
-                          style:
-                          const TextStyle(
-                            color:
-                            Colors.black54,
-                          ),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.black54),
                         ),
                       ],
                     ),
                   ),
                 )
               else
-              // ===============================================
-              // HISTORY LIST
-              // ===============================================
-
+                // ===============================================
+                // HISTORY LIST
+                // ===============================================
                 Expanded(
                   child: ListView.builder(
-                    itemCount:
-                    attempts.length,
+                    itemCount: attempts.length,
 
                     itemBuilder: (_, i) {
-                      final data =
-                      attempts[i].data()
-                      as Map<String,
-                          dynamic>;
+                      final data = attempts[i].data() as Map<String, dynamic>;
 
-                      final timestamp =
-                      data['attemptedAt']
-                      as Timestamp?;
+                      final timestamp = data['attemptedAt'] as Timestamp?;
 
-                      final dateTime =
-                      timestamp?.toDate();
+                      final dateTime = timestamp?.toDate();
 
                       String formattedDate = "";
 
                       if (dateTime != null) {
                         formattedDate =
-                        "${dateTime.day}/${dateTime.month}/${dateTime.year}"
+                            "${dateTime.day}/${dateTime.month}/${dateTime.year}"
                             " • "
                             "${dateTime.hour}:"
                             "${dateTime.minute.toString().padLeft(2, '0')}";
                       }
 
                       // Meta fields
-                      final subject =
-                          data['subject'] ??
-                              'Quiz';
+                      final subject = data['subject'] ?? 'Quiz';
 
-                      final acc =
-                          data['accuracy'] ?? 0;
+                      final acc = data['accuracy'] ?? 0;
 
-                      Color accColor =
-                      acc >= 75
+                      Color accColor = acc >= 75
                           ? Colors.green
                           : acc >= 50
                           ? Colors.orange
@@ -543,66 +432,39 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  QuizReviewScreen(
-                                    subject:
-                                    data['subject'],
-                                    department:
-                                    data['department'],
-                                    semester:
-                                    data['semester'],
-                                    university:
-                                    data['university'],
-                                    campus:
-                                    data['location'],
-                                    weakTopics:
-                                    Map<String,
-                                        dynamic>.from(
-                                      data['weakTopics'] ??
-                                          {},
-                                    ),
-                                    questions:
-                                    List<Map<String,
-                                        dynamic>>.from(
-                                      data['questions'],
-                                    ),
-                                    selectedAnswers:
-                                    Map<String,
-                                        dynamic>.from(
-                                      data['selectedAnswers'],
-                                    ),
-                                  ),
+                              builder: (_) => QuizReviewScreen(
+                                subject: data['subject'],
+                                department: data['department'],
+                                semester: data['semester'],
+                                university: data['university'],
+                                campus: data['location'],
+                                weakTopics: Map<String, dynamic>.from(
+                                  data['weakTopics'] ?? {},
+                                ),
+                                questions: List<Map<String, dynamic>>.from(
+                                  data['questions'],
+                                ),
+                                selectedAnswers: Map<String, dynamic>.from(
+                                  data['selectedAnswers'],
+                                ),
+                              ),
                             ),
                           );
                         },
 
                         child: Container(
-                          margin:
-                          const EdgeInsets
-                              .symmetric(
+                          margin: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 8,
                           ),
 
-                          padding:
-                          const EdgeInsets.all(
-                            14,
-                          ),
+                          padding: const EdgeInsets.all(14),
 
-                          decoration:
-                          BoxDecoration(
+                          decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius:
-                            BorderRadius
-                                .circular(
-                              14,
-                            ),
+                            borderRadius: BorderRadius.circular(14),
                             boxShadow: const [
-                              BoxShadow(
-                                color:
-                                Colors.black12,
-                                blurRadius: 6,
-                              ),
+                              BoxShadow(color: Colors.black12, blurRadius: 6),
                             ],
                           ),
 
@@ -610,154 +472,97 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
                             children: [
                               // LEFT ICON
                               Container(
-                                padding:
-                                const EdgeInsets
-                                    .all(12),
+                                padding: const EdgeInsets.all(12),
 
-                                decoration:
-                                BoxDecoration(
-                                  color: Colors
-                                      .lightBlue
-                                      .withOpacity(
-                                    0.1,
-                                  ),
-                                  borderRadius:
-                                  BorderRadius
-                                      .circular(
-                                    10,
-                                  ),
+                                decoration: BoxDecoration(
+                                  color: Colors.lightBlue.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
 
-                                child:
-                                const Icon(
+                                child: const Icon(
                                   Icons.psychology,
-                                  color:
-                                  Colors.lightBlue,
+                                  color: Colors.lightBlue,
                                 ),
                               ),
 
-                              const SizedBox(
-                                width: 12,
-                              ),
+                              const SizedBox(width: 12),
 
                               // TEXT INFO
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment
-                                      .start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
 
                                   children: [
                                     Text(
                                       subject,
-                                      style:
-                                      const TextStyle(
-                                        fontWeight:
-                                        FontWeight
-                                            .bold,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
                                         fontSize: 16,
                                       ),
                                     ),
 
-                                    const SizedBox(
-                                      height: 4,
-                                    ),
+                                    const SizedBox(height: 4),
 
                                     Text(
                                       "Quiz Attempt",
-                                      style:
-                                      TextStyle(
+                                      style: TextStyle(
                                         fontSize: 11,
-                                        color: Colors
-                                            .grey
-                                            .shade500,
+                                        color: Colors.grey.shade500,
                                       ),
                                     ),
 
                                     Text(
                                       formattedDate,
-                                      style:
-                                      TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
-                                        color: Colors
-                                            .grey
-                                            .shade500,
+                                        color: Colors.grey.shade500,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
 
-                              const SizedBox(
-                                width: 8,
-                              ),
+                              const SizedBox(width: 8),
 
                               // RIGHT SIDE
                               Column(
-                                crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .end,
+                                crossAxisAlignment: CrossAxisAlignment.end,
 
                                 children: [
                                   Text(
                                     "${data['score']}/${data['total']}",
-                                    style:
-                                    const TextStyle(
-                                      fontWeight:
-                                      FontWeight
-                                          .bold,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
                                       fontSize: 16,
                                     ),
                                   ),
 
-                                  const SizedBox(
-                                    height: 4,
-                                  ),
+                                  const SizedBox(height: 4),
 
                                   Container(
-                                    padding:
-                                    const EdgeInsets
-                                        .symmetric(
+                                    padding: const EdgeInsets.symmetric(
                                       horizontal: 8,
                                       vertical: 4,
                                     ),
 
-                                    decoration:
-                                    BoxDecoration(
-                                      color: accColor
-                                          .withOpacity(
-                                        0.15,
-                                      ),
-                                      borderRadius:
-                                      BorderRadius
-                                          .circular(
-                                        8,
-                                      ),
+                                    decoration: BoxDecoration(
+                                      color: accColor.withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
 
                                     child: Text(
                                       "$acc%",
-                                      style:
-                                      TextStyle(
-                                        color:
-                                        accColor,
-                                        fontWeight:
-                                        FontWeight
-                                            .bold,
+                                      style: TextStyle(
+                                        color: accColor,
+                                        fontWeight: FontWeight.bold,
                                         fontSize: 12,
                                       ),
                                     ),
                                   ),
 
-                                  const SizedBox(
-                                    height: 6,
-                                  ),
+                                  const SizedBox(height: 6),
 
-                                  const Icon(
-                                    Icons
-                                        .arrow_forward_ios,
-                                    size: 14,
-                                  ),
+                                  const Icon(Icons.arrow_forward_ios, size: 14),
                                 ],
                               ),
                             ],

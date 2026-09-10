@@ -26,37 +26,36 @@ class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
         .doc(user.uid)
         .snapshots()
         .listen((doc) async {
+          final status = doc.data()?['status'];
 
-      final status = doc.data()?['status'];
+          if (status == 'approved') {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('user_role', 'teacher');
 
-      if (status == 'approved') {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('user_role', 'teacher');
+            if (!mounted) return;
 
-        if (!mounted) return;
-
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => AlertDialog(
-            title: const Text('🎉 Approved!'),
-            content: const Text(
-              'Your teacher account has been approved.\n'
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (_) => AlertDialog(
+                title: const Text('🎉 Approved!'),
+                content: const Text(
+                  'Your teacher account has been approved.\n'
                   'You now have access to teacher features.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pushReplacementNamed(context, '/dashboard');
-                },
-                child: const Text('Continue'),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pushReplacementNamed(context, '/dashboard');
+                    },
+                    child: const Text('Continue'),
+                  ),
+                ],
               ),
-            ],
-          ),
-        );
-      }
-    });
+            );
+          }
+        });
   }
 
   @override
@@ -84,7 +83,7 @@ class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
             Center(
               child: const Text(
                 'Your teacher request is under review.\n'
-                    'You can continue using the app as a student.',
+                'You can continue using the app as a student.',
                 textAlign: TextAlign.center,
               ),
             ),

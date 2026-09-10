@@ -55,7 +55,7 @@ class SemesterScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // 🔹 Icon
+                  // Icon
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
@@ -71,7 +71,7 @@ class SemesterScreen extends StatelessWidget {
 
                   const SizedBox(height: 12),
 
-                  // 🔹 Semester Text
+                  // Semester Text
                   Text(
                     'Semester $semester',
                     style: const TextStyle(

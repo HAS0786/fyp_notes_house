@@ -4,18 +4,12 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:crypto/crypto.dart';
 import 'dart:convert';
 
 class NoteUploadService {
   static const int maxFileSize = 10 * 1024 * 1024;
-  static Future<String> generateFileHash(File file) async {
-    final bytes = await file.readAsBytes();
-    final hash = sha256.convert(bytes);
-    return hash.toString();
-  }
 
-  /// 🔹 Fetch teacher name from Firestore
+  // Fetch teacher name from firestore
   static Future<String> _getTeacherName(String teacherId) async {
     final snap = await FirebaseFirestore.instance
         .collection('users')
@@ -34,7 +28,6 @@ class NoteUploadService {
     required int semester,
     required String resourceType,
     required String subject,
-    required String fileId,
     String? noteId,
   }) async {
     try {
@@ -49,7 +42,7 @@ class NoteUploadService {
       final teacherId = user.uid;
       final teacherName = await _getTeacherName(teacherId);
 
-      // 🔥 GET TOKEN (CRITICAL)
+      //  GET TOKEN
       final token = await user.getIdToken();
 
       final request = http.MultipartRequest(
@@ -57,10 +50,10 @@ class NoteUploadService {
         Uri.parse("$baseUrl/upload-note"),
       );
 
-      // 🔥 ADD AUTH HEADER (MOST IMPORTANT FIX)
+      //  ADD AUTH HEADER (MOST IMPORTANT FIX)
       request.headers['Authorization'] = 'Bearer $token';
 
-      // 📎 Attach File
+      //  Attach File
       request.files.add(
         await http.MultipartFile.fromPath(
           "file",
@@ -69,7 +62,7 @@ class NoteUploadService {
         ),
       );
 
-      // 📄 Attach Fields
+      // Attach Fields
       request.fields.addAll({
         "title": title.trim(),
         "university": university.trim(),
@@ -79,7 +72,6 @@ class NoteUploadService {
         "category": resourceType.trim(),
         "subject": subject.trim(),
         "teacherName": teacherName,
-        "fileId": fileId,
         if (noteId != null) "noteId": noteId,
       });
 

@@ -30,7 +30,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void handleNotificationClick(RemoteMessage message) {
   final data = message.data;
 
-  // 🔥 delay so navigator ready ho
+  //  delay so navigator ready ho
   Future.delayed(const Duration(milliseconds: 500), () {
 
     if (data['type'] == 'new_quiz' && data['quizId'] != null) {

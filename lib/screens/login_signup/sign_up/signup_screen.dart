@@ -39,13 +39,14 @@ class _SignupScreenState extends State<SignupScreen> {
       /// CREATE AUTH USER
       final userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
-        email: _emailCtrl.text.trim(),
-        password: _passCtrl.text.trim(),
-      );
+            email: _emailCtrl.text.trim(),
+            password: _passCtrl.text.trim(),
+          );
 
       final uid = userCredential.user!.uid;
 
       await userCredential.user!.sendEmailVerification();
+
       /// STORE USER DATA IN FIRESTORE
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'name': _nameCtrl.text.trim(),
@@ -76,9 +77,7 @@ class _SignupScreenState extends State<SignupScreen> {
       /// NAVIGATION → AUTH WRAPPER WILL HANDLE NEXT
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (_) => const EmailVerificationScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const EmailVerificationScreen()),
       );
       setState(() => _isLoading = false);
     } on FirebaseAuthException catch (e) {
@@ -107,19 +106,10 @@ class _SignupScreenState extends State<SignupScreen> {
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value)) return 'Enter a valid email';
 
-    // Real Validity
-    // if (widget.isTeacher &&
-    //     !value.endsWith('.edu.pk') &&
-    //     !value.endsWith('.edu')) {
-    //   return 'Teacher email must end with .edu or .edu.pk';
-    // }
-
     // only for testing
 
     const testTeacherEmail = 'hasnatmughal7565@gmail.com';
     if (widget.isTeacher &&
-
-
         !value.endsWith('.edu.pk') &&
         !value.endsWith('.edu')) {
       return 'Teacher email must end with .edu or .edu.pk';
@@ -153,6 +143,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
     return null;
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -295,13 +286,13 @@ class _SignupScreenState extends State<SignupScreen> {
                               .collection('users')
                               .doc(user.uid)
                               .set({
-                            'name': user.displayName ?? '',
-                            'email': user.email ?? '',
-                            'role': 'student',
-                            'status': 'approved',
-                            'createdAt': FieldValue.serverTimestamp(),
-                            'notificationsEnabled': true, // 🔥 ALWAYS ADD
-                          }, SetOptions(merge: true));
+                                'name': user.displayName ?? '',
+                                'email': user.email ?? '',
+                                'role': 'student',
+                                'status': 'approved',
+                                'createdAt': FieldValue.serverTimestamp(),
+                                'notificationsEnabled': true, // ALWAYS ADD
+                              }, SetOptions(merge: true));
                           await NotificationService.saveToken();
                           // sync role
                           await AuthRoleService.syncUserToLocal(user: user);

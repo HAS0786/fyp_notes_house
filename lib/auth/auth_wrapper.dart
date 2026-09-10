@@ -3,8 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_ui_design/screens/admin/admin_dashboard_screen.dart';
-import 'package:fyp_ui_design/screens/roles_selection/student_details_screen.dart';
-
 import '../screens/dashboard/home_screen.dart';
 import '../screens/dashboard/pendingapproval/pendingapprovalscreen.dart';
 import '../screens/roles_selection/chose_role_screen.dart';
@@ -19,7 +17,7 @@ class AuthWrapper extends StatefulWidget {
 
 class _AuthWrapperState extends State<AuthWrapper> {
 
-  /// 🔹 Fetch role safely
+  //  Fetch role safely
   Future<Map<String, dynamic>?> _getUserData(User user) async {
     final doc = await FirebaseFirestore.instance
         .collection('users')
@@ -34,7 +32,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   void initState() {
     super.initState();
 
-    /// 🔔 FOREGROUND NOTIFICATION (THIS IS MISSING)
+    // FOREGROUND NOTIFICATION (THIS IS MISSING)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final title = message.data['title'] ?? 'Notification';
       final body = message.data['body'] ?? '';
@@ -49,7 +47,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
       );
     });
 
-    /// 🔔 CLICK NOTIFICATION
+    // CLICK NOTIFICATION
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       final data = message.data;
 
@@ -68,7 +66,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, authSnap) {
 
-        // ⏳ Checking auth
+        //  Checking auth
         if (authSnap.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),

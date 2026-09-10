@@ -5,10 +5,7 @@ class AIAvatarLoader extends StatefulWidget {
 
   @override
   State<AIAvatarLoader> createState() => _AIAvatarLoaderState();
-
-
 }
-
 
 class _AIAvatarLoaderState extends State<AIAvatarLoader>
     with SingleTickerProviderStateMixin {
@@ -25,7 +22,7 @@ class _AIAvatarLoaderState extends State<AIAvatarLoader>
 
   @override
   void dispose() {
-    _controller.dispose();   // THIS FIXES ERROR
+    _controller.dispose(); // THIS FIXES ERROR
     super.dispose();
   }
 
@@ -44,10 +41,7 @@ class _AIAvatarLoaderState extends State<AIAvatarLoader>
             ),
           ),
           const SizedBox(width: 10),
-          const Text(
-            "AI is thinking...",
-            style: TextStyle(color: Colors.grey),
-          ),
+          const Text("AI is thinking...", style: TextStyle(color: Colors.grey)),
         ],
       ),
     );

@@ -27,11 +27,11 @@ class ChatBubble extends StatelessWidget {
             : msg['isTyped'] == true
             ? MarkdownBody(data: msg['text'])
             : TypewriterMarkdown(
-          text: msg['text'],
-          onCompleted: () {
-            msg['isTyped'] = true;
-          },
-        ),
+                text: msg['text'],
+                onCompleted: () {
+                  msg['isTyped'] = true;
+                },
+              ),
       ),
     );
   }

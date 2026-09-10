@@ -4,12 +4,14 @@ class ChatInputBar extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback? onSend;
   final VoidCallback onAttach;
+  final bool isLoading;
 
   const ChatInputBar({
     super.key,
     required this.controller,
     required this.onSend,
     required this.onAttach,
+    required this.isLoading,
   });
 
   @override
@@ -37,7 +39,16 @@ class ChatInputBar extends StatelessWidget {
                   child: CircleAvatar(
                     backgroundColor: Colors.lightBlue,
                     child: IconButton(
-                      icon: Icon(Icons.send),
+                      icon: isLoading
+                          ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                          : const Icon(Icons.send),
                       color: Colors.white,
                       onPressed: onSend,
                     ),

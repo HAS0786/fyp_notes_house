@@ -25,7 +25,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
 
-
   Future<void> _forgotPassword() async {
     final email = _emailCtrl.text.trim();
 
@@ -37,16 +36,14 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (_validateEmail(email) != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid email')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Enter a valid email')));
       return;
     }
 
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(
-        email: email,
-      );
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
 
       if (!mounted) return;
 
@@ -59,12 +56,11 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message ?? 'Unable to send reset email'),
-        ),
+        SnackBar(content: Text(e.message ?? 'Unable to send reset email')),
       );
     }
   }
+
   /// Firebase login
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
@@ -81,9 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (_) => const EmailVerificationScreen(),
-          ),
+          MaterialPageRoute(builder: (_) => const EmailVerificationScreen()),
         );
 
         return;
@@ -201,7 +195,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 18),
 
-
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
@@ -242,39 +235,41 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: kIsWeb
                         ? null
                         : () async {
-                      setState(() => _isLoading = true);
-                      final user =
+                            setState(() => _isLoading = true);
+                            final user =
                                 await GoogleAuthService.signInWithGoogleSafe(
                                   context: context,
                                 );
 
-                      if (user == null) {
-                        setState(() => _isLoading = false); // ❗ missing before
-                        return;
-                      }
+                            if (user == null) {
+                              setState(
+                                () => _isLoading = false,
+                              ); //  missing before
+                              return;
+                            }
 
                             final doc = await FirebaseFirestore.instance
                                 .collection('users')
                                 .doc(user.uid)
                                 .get();
 
-                            // 🔥 NEW USER → create document
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(user.uid)
-                          .set({
-                        'name': user.displayName ?? '',
-                        'email': user.email ?? '',
-                        'role': 'student',
-                        'status': 'approved',
-                        'createdAt': FieldValue.serverTimestamp(),
-                        'notificationsEnabled': true, // 🔥 ALWAYS ADD
-                      }, SetOptions(merge: true));
-                      await NotificationService.saveToken();
+                            //  NEW USER → create document
+                            await FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(user.uid)
+                                .set({
+                                  'name': user.displayName ?? '',
+                                  'email': user.email ?? '',
+                                  'role': 'student',
+                                  'status': 'approved',
+                                  'createdAt': FieldValue.serverTimestamp(),
+                                  'notificationsEnabled': true, //  ALWAYS ADD
+                                }, SetOptions(merge: true));
+                            await NotificationService.saveToken();
                             // sync role
                             await AuthRoleService.syncUserToLocal(user: user);
-                      setState(() => _isLoading = false);
-                      Navigator.pushReplacement(
+                            setState(() => _isLoading = false);
+                            Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
                                 builder: (_) => const AuthWrapper(),

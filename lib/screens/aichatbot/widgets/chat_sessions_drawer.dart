@@ -55,8 +55,8 @@ class _ChatSessionsDrawerState extends State<ChatSessionsDrawer> {
         actions: [
           TextButton(
             onPressed: () async {
-              final token =
-              await FirebaseAuth.instance.currentUser!.getIdToken();
+              final token = await FirebaseAuth.instance.currentUser!
+                  .getIdToken();
 
               await http.put(
                 Uri.parse("$baseUrl/rename-chat/$id"),
@@ -82,15 +82,15 @@ class _ChatSessionsDrawerState extends State<ChatSessionsDrawer> {
     return SafeArea(
       child: Column(
         children: [
-          // 🔥 Header
+          // Header
           Container(
             width: double.infinity,
             padding: EdgeInsets.all(16),
             color: Colors.lightBlue,
             child: Row(
               children: [
-                Icon(Icons.history_rounded,color: Colors.white,),
-                SizedBox(width: 10,),
+                Icon(Icons.history_rounded, color: Colors.white),
+                SizedBox(width: 10),
                 Text(
                   "Chat History",
                   style: TextStyle(color: Colors.white, fontSize: 18),
@@ -99,11 +99,19 @@ class _ChatSessionsDrawerState extends State<ChatSessionsDrawer> {
             ),
           ),
 
-          // 🔥 New Chat button (KEEPING YOUR FEATURE)
+          // New Chat button (KEEPING YOUR FEATURE)
           ListTile(
-            titleTextStyle: TextStyle(fontSize: 20,color: Colors.black,fontWeight: FontWeight.bold),
+            titleTextStyle: TextStyle(
+              fontSize: 20,
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+            ),
             hoverColor: Colors.grey,
-            leading: Icon(Icons.add_circle_outline_outlined ,color: Colors.lightBlue,size: 30,),
+            leading: Icon(
+              Icons.add_circle_outline_outlined,
+              color: Colors.lightBlue,
+              size: 30,
+            ),
             title: Text("Add New Chat"),
             onTap: () {
               Navigator.pop(context);
@@ -116,7 +124,7 @@ class _ChatSessionsDrawerState extends State<ChatSessionsDrawer> {
 
           Divider(),
 
-          // 🔥 Chat List (YOUR SAME UI)
+          //  Chat List (YOUR SAME UI)
           Expanded(
             child: ListView.builder(
               itemCount: sessions.length,
@@ -124,7 +132,6 @@ class _ChatSessionsDrawerState extends State<ChatSessionsDrawer> {
                 final s = sessions[i];
 
                 return ListTile(
-                  
                   leading: CircleAvatar(
                     backgroundColor: Colors.lightBlue,
                     child: Icon(Icons.chat, color: Colors.white),
@@ -154,8 +161,7 @@ class _ChatSessionsDrawerState extends State<ChatSessionsDrawer> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (_) =>
-                            AIChatScreen(sessionId: s["id"]),
+                        builder: (_) => AIChatScreen(sessionId: s["id"]),
                       ),
                     );
                   },

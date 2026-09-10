@@ -55,7 +55,7 @@ class DepartmentScreen extends StatelessWidget {
                   contentPadding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
 
-                  // 🔹 Icon container
+                  //  Icon container
                   leading: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
@@ -69,7 +69,7 @@ class DepartmentScreen extends StatelessWidget {
                     ),
                   ),
 
-                  // 🔹 Department name
+                  //  Department name
                   title: Text(
                     data['name'] ?? 'Unnamed Department',
                     style: const TextStyle(

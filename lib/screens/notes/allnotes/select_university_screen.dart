@@ -50,7 +50,7 @@ class SelectUniversityScreen extends StatelessWidget {
                   contentPadding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
 
-                  // 🔹 Icon container
+                  //  Icon container
                   leading: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
@@ -64,7 +64,7 @@ class SelectUniversityScreen extends StatelessWidget {
                     ),
                   ),
 
-                  // 🔹 University Name
+                  //  University Name
                   title: Text(
                     data['name'] ?? 'Unknown University',
                     style: const TextStyle(
@@ -104,7 +104,7 @@ class SelectUniversityScreen extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (_) => CampusScreen(
                             universityName: data['name'].toString(),
-                            locations: locations, // ✅ ALWAYS LIST
+                            locations: locations, //  ALWAYS LIST
                           ),
                         ),
                       );

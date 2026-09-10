@@ -11,6 +11,7 @@ class UploadNoteScreen extends StatefulWidget {
   final bool isEdit;
   final Map<String, dynamic>? noteData;
   final String? noteId;
+
   const UploadNoteScreen({
     super.key,
     this.isEdit = false,
@@ -34,7 +35,7 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
   // Selected file
   File? selectedFile;
   bool isFileValid = false;
-// Existing file from Firestore (Edit mode)
+  // Existing file from Firestore (Edit mode)
   String? existingFileName;
 
   List<String> typeofDocument = [
@@ -58,7 +59,6 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
       if (word.isEmpty) continue;
       result.add(word[0].toUpperCase() + word.substring(1).toLowerCase());
     }
-
     return result.join(' ');
   }
 
@@ -72,35 +72,17 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
       descCtrl.text = widget.noteData!['description'] ?? '';
       existingFileName =
           widget.noteData!['fileName']?.toString() ??
-              getCleanName(widget.noteData!['fileUrl']?.toString() ?? '');
+          getCleanName(widget.noteData!['fileUrl']?.toString() ?? '');
       academic.subject = widget.noteData!['subject'] ?? '';
       academic.university = widget.noteData!['university'];
       academic.location = widget.noteData!['location'];
       academic.department = widget.noteData!['department'];
       academic.semester = widget.noteData!['semester'];
       String doc = (widget.noteData?['category'] ?? "").toString().trim();
-      selectedTypeofDocument =
-      typeofDocument.contains(doc) ? doc : null;
+      selectedTypeofDocument = typeofDocument.contains(doc) ? doc : null;
     }
     print(widget.noteData);
   }
-
-  // Future<void> _pickFile() async {
-  //   final result = await FilePicker.platform.pickFiles(
-  //     allowMultiple: false,
-  //     type: FileType.any, //  IMPORTANT
-  //   );
-  //
-  //   if (result != null && result.files.single.path != null) {
-  //     final file = File(result.files.single.path!);
-  //
-  //     setState(() {
-  //       selectedFile = file;
-  //     });
-  //
-  //     debugPrint("FILE PICKED: ${file.path}");
-  //   }
-  // }
 
   // Upload note
   Future<void> _pickFile() async {
@@ -139,18 +121,22 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
       debugPrint("FILE PICKED: ${file.path}");
     }
   }
+
   Future<void> _uploadNote(BuildContext context) async {
     if (titleCtrl.text.trim().isEmpty ||
-    academic.university == null ||
+        academic.university == null ||
         academic.location == null ||
         academic.department == null ||
         academic.semester == null ||
         academic.subject == null ||
         (widget.isEdit == false && (selectedFile == null || !isFileValid)) ||
         selectedTypeofDocument == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please fill all fields'),backgroundColor: Colors.red,));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill all fields'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 
@@ -158,8 +144,7 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
 
     /// EDIT MODE
     if (widget.isEdit && widget.noteId != null) {
-
-      // CASE 1: USER ne NEW FILE select ki hai
+      // CASE 1: USER  select NEW FILE
       if (selectedFile != null) {
         final result = await NoteUploadService.uploadNote(
           file: selectedFile!,
@@ -170,7 +155,6 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
           subject: normalize(academic.subject!),
           semester: academic.semester!,
           resourceType: selectedTypeofDocument!,
-          fileId: "",
           noteId: widget.noteId,
         );
 
@@ -196,30 +180,26 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
           );
         }
       }
-
-      //  CASE 2: sirf text update
+      //  CASE 2: text update
       else {
         await FirebaseFirestore.instance
             .collection('notes')
             .doc(widget.noteId)
             .update({
-          'title': titleCtrl.text.trim(),
-          'description': descCtrl.text.trim(),
-          'subject': academic.subject,
-          'university': academic.university,
-          'location': academic.location,
-          'department': academic.department,
-          'semester': academic.semester!,
-          'resourceType': selectedTypeofDocument,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
+              'title': titleCtrl.text.trim(),
+              'description': descCtrl.text.trim(),
+              'subject': academic.subject,
+              'university': academic.university,
+              'location': academic.location,
+              'department': academic.department,
+              'semester': academic.semester!,
+              'resourceType': selectedTypeofDocument,
+              'updatedAt': FieldValue.serverTimestamp(),
+            });
       }
     }
-    /// 🔥 NEW NOTE
+    // NEW NOTE upload
     else {
-      final fileId = await NoteUploadService.generateFileHash(selectedFile!);
-
-
       final result = await NoteUploadService.uploadNote(
         file: selectedFile!,
         title: titleCtrl.text.trim(),
@@ -229,7 +209,6 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
         subject: normalize(academic.subject!),
         semester: academic.semester!,
         resourceType: selectedTypeofDocument!,
-        fileId: fileId,
       );
 
       await _ensureUniversityHasLocation();
@@ -248,9 +227,7 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
           ),
         );
         return;
-      }
-
-      else if (result['success'] == true) {
+      } else if (result['success'] == true) {
         setState(() => isUploading = false);
 
         final status = result['status'];
@@ -267,13 +244,12 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
         );
 
         Navigator.pop(context);
-      }
-      else {
+      } else {
         setState(() => isUploading = false);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Upload failed")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Upload failed")));
       }
     }
   }
@@ -303,6 +279,7 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
     final name = basename(url);
     return name.replaceFirst(RegExp(r'^\d+-'), '');
   }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -395,15 +372,16 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
                                 ? Colors.green
                                 : selectedFile != null
                                 ? Colors.red
-                                : Colors.grey
+                                : Colors.grey,
                           ),
                           const SizedBox(height: 10),
 
-                          /// 🔹 FILE NAME
+                          //  FILE NAME
                           Text(
                             selectedFile != null
                                 ? basename(selectedFile!.path)
-                                : existingFileName != null && existingFileName!.isNotEmpty
+                                : existingFileName != null &&
+                                      existingFileName!.isNotEmpty
                                 ? existingFileName!
                                 : 'Tap to upload PDF or Image\nMaximum size: 10 MB',
                             textAlign: TextAlign.center,
@@ -411,7 +389,9 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 14,
-                              fontWeight: selectedFile != null || existingFileName != null
+                              fontWeight:
+                                  selectedFile != null ||
+                                      existingFileName != null
                                   ? FontWeight.w600
                                   : FontWeight.normal,
                               color: selectedFile != null
@@ -436,14 +416,17 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
                                       : '${sizeMB.toStringAsFixed(1)} MB • Maximum size is 10 MB',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: isFileValid ? Colors.green : Colors.red,
+                                    color: isFileValid
+                                        ? Colors.green
+                                        : Colors.red,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 );
                               },
                             ),
                           ],
-                          /// 🔹 REMOVE BUTTON (IMPORTANT UX)
+
+                          // REMOVE BUTTON (IMPORTANT UX)
                           if (selectedFile != null) ...[
                             const SizedBox(height: 8),
                             GestureDetector(

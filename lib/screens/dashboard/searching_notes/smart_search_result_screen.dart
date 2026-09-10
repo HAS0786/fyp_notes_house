@@ -5,18 +5,14 @@ import 'package:fyp_ui_design/screens/notes/allnotes/resourcesscreens/pdf_viewer
 class SmartSearchResultScreen extends StatefulWidget {
   final String query;
 
-  const SmartSearchResultScreen({
-    super.key,
-    required this.query,
-  });
+  const SmartSearchResultScreen({super.key, required this.query});
 
   @override
   State<SmartSearchResultScreen> createState() =>
       _SmartSearchResultScreenState();
 }
 
-class _SmartSearchResultScreenState
-    extends State<SmartSearchResultScreen> {
+class _SmartSearchResultScreenState extends State<SmartSearchResultScreen> {
   late Future<List<Map<String, dynamic>>> _results;
 
   @override
@@ -26,8 +22,7 @@ class _SmartSearchResultScreenState
   }
 
   Future<List<Map<String, dynamic>>> _searchNotes() async {
-    final snapshot =
-    await FirebaseFirestore.instance.collection('notes').get();
+    final snapshot = await FirebaseFirestore.instance.collection('notes').get();
 
     final query = widget.query.toLowerCase().trim();
 
@@ -41,28 +36,22 @@ class _SmartSearchResultScreenState
     for (final doc in snapshot.docs) {
       final data = doc.data();
 
-      final title =
-      (data['title'] ?? '').toString().toLowerCase();
+      final title = (data['title'] ?? '').toString().toLowerCase();
 
-      final subject =
-      (data['subject'] ?? '').toString().toLowerCase();
+      final subject = (data['subject'] ?? '').toString().toLowerCase();
 
-      final description =
-      (data['description'] ?? '').toString().toLowerCase();
+      final description = (data['description'] ?? '').toString().toLowerCase();
 
-      final category =
-      (data['category'] ?? '').toString().toLowerCase();
+      final category = (data['category'] ?? '').toString().toLowerCase();
 
-      final university =
-      (data['university'] ?? '').toString().toLowerCase();
+      final university = (data['university'] ?? '').toString().toLowerCase();
 
-      final department =
-      (data['department'] ?? '').toString().toLowerCase();
+      final department = (data['department'] ?? '').toString().toLowerCase();
 
       final keywords = (data['keywords'] is List)
           ? (data['keywords'] as List)
-          .map((e) => e.toString().toLowerCase())
-          .toList()
+                .map((e) => e.toString().toLowerCase())
+                .toList()
           : <String>[];
 
       int score = 0;
@@ -71,7 +60,7 @@ class _SmartSearchResultScreenState
       if (title.contains(query)) score += 10;
       if (subject.contains(query)) score += 8;
       if (description.contains(query)) score += 5;
-     //  Exact phrase found in extracted keywords
+      //  Exact phrase found in extracted keywords
       if (keywords.any((keyword) => keyword.contains(query))) {
         score += 10;
       }
@@ -91,17 +80,13 @@ class _SmartSearchResultScreenState
       }
 
       if (score > 0) {
-        results.add({
-          ...data,
-          '_searchScore': score,
-        });
+        results.add({...data, '_searchScore': score});
       }
     }
 
     // Highest relevance first
     results.sort(
-          (a, b) => (b['_searchScore'] as int)
-          .compareTo(a['_searchScore'] as int),
+      (a, b) => (b['_searchScore'] as int).compareTo(a['_searchScore'] as int),
     );
 
     return results;
@@ -119,18 +104,13 @@ class _SmartSearchResultScreenState
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _results,
         builder: (context, snapshot) {
-          if (snapshot.connectionState ==
-              ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
             return Center(
-              child: Text(
-                'Error searching notes: ${snapshot.error}',
-              ),
+              child: Text('Error searching notes: ${snapshot.error}'),
             );
           }
 
@@ -151,38 +131,27 @@ class _SmartSearchResultScreenState
             itemBuilder: (context, index) {
               final data = notes[index];
 
-              final title =
-                  data['title'] ?? 'Untitled Resource';
+              final title = data['title'] ?? 'Untitled Resource';
 
-              final teacherName =
-                  data['teacherName'] ?? 'Unknown Teacher';
+              final teacherName = data['teacherName'] ?? 'Unknown Teacher';
 
-              final subject =
-                  data['subject'] ?? '';
+              final subject = data['subject'] ?? '';
 
-              final university =
-                  data['university'] ?? '';
+              final university = data['university'] ?? '';
 
-              final department =
-                  data['department'] ?? '';
+              final department = data['department'] ?? '';
 
-              final semester =
-                  data['semester'] ?? '';
+              final semester = data['semester'] ?? '';
 
-              final category =
-                  data['category'] ?? '';
+              final category = data['category'] ?? '';
 
-              final fileUrl =
-                  data['fileUrl'] ?? '';
+              final fileUrl = data['fileUrl'] ?? '';
 
-              final isPdf =
-              fileUrl.toString().toLowerCase().endsWith('.pdf');
+              final isPdf = fileUrl.toString().toLowerCase().endsWith('.pdf');
 
               return Card(
                 elevation: 2,
-                margin: const EdgeInsets.symmetric(
-                  vertical: 8,
-                ),
+                margin: const EdgeInsets.symmetric(vertical: 8),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -199,11 +168,8 @@ class _SmartSearchResultScreenState
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
-                      isPdf
-                          ? Icons.picture_as_pdf
-                          : Icons.image,
-                      color:
-                      isPdf ? Colors.red : Colors.blue,
+                      isPdf ? Icons.picture_as_pdf : Icons.image,
+                      color: isPdf ? Colors.red : Colors.blue,
                       size: 26,
                     ),
                   ),
@@ -217,17 +183,13 @@ class _SmartSearchResultScreenState
                   ),
 
                   subtitle: Padding(
-                    padding:
-                    const EdgeInsets.only(top: 5),
+                    padding: const EdgeInsets.only(top: 5),
                     child: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Subject: $subject',
-                          style: const TextStyle(
-                            fontSize: 13,
-                          ),
+                          style: const TextStyle(fontSize: 13),
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -256,12 +218,8 @@ class _SmartSearchResultScreenState
 
                   onTap: () {
                     if (fileUrl.toString().isEmpty) {
-                      ScaffoldMessenger.of(context)
-                          .showSnackBar(
-                        const SnackBar(
-                          content:
-                          Text('File not available'),
-                        ),
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('File not available')),
                       );
                       return;
                     }
@@ -269,10 +227,8 @@ class _SmartSearchResultScreenState
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => FileViewerScreen(
-                          title: title,
-                          fileUrl: fileUrl,
-                        ),
+                        builder: (_) =>
+                            FileViewerScreen(title: title, fileUrl: fileUrl),
                       ),
                     );
                   },
