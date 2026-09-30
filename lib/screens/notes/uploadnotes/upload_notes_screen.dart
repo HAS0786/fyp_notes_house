@@ -1,11 +1,9 @@
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fyp_ui_design/widgets/academic_info_form.dart';
 import 'package:path/path.dart';
 import 'package:fyp_ui_design/firebase/services/note_upload_service.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'dart:convert';
 
 class UploadNoteScreen extends StatefulWidget {
   final bool isEdit;
@@ -25,19 +23,30 @@ class UploadNoteScreen extends StatefulWidget {
 
 class _UploadNoteScreenState extends State<UploadNoteScreen> {
   bool isUploading = false;
+
   AcademicSelection academic = AcademicSelection();
+
   String? selectedTypeofDocument;
 
-  // Controllers
+  // ============================================================
+  // CONTROLLERS
+  // ============================================================
   final titleCtrl = TextEditingController();
   final descCtrl = TextEditingController();
 
-  // Selected file
-  File? selectedFile;
+  // ============================================================
+  // SELECTED FILE
+  // ============================================================
+  PlatformFile? selectedFile;
+
   bool isFileValid = false;
+
   // Existing file from Firestore (Edit mode)
   String? existingFileName;
 
+  // ============================================================
+  // DOCUMENT TYPES
+  // ============================================================
   List<String> typeofDocument = [
     'Books',
     'Notes',
@@ -47,9 +56,12 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
     'Projects',
   ];
 
-  // Add new item dialog
+  // ============================================================
+  // NORMALIZE TEXT
+  // ============================================================
   String normalize(String input) {
     input = input.trim();
+
     if (input.isEmpty) return "";
 
     List<String> words = input.split(' ');
@@ -57,115 +69,221 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
 
     for (var word in words) {
       if (word.isEmpty) continue;
-      result.add(word[0].toUpperCase() + word.substring(1).toLowerCase());
+
+      result.add(
+        word[0].toUpperCase() +
+            word.substring(1).toLowerCase(),
+      );
     }
+
     return result.join(' ');
   }
 
+  // ============================================================
+  // INIT STATE
+  // ============================================================
   @override
   void initState() {
     super.initState();
+
     selectedFile = null;
     isFileValid = false;
+
     if (widget.isEdit && widget.noteData != null) {
       titleCtrl.text = widget.noteData!['title'] ?? '';
-      descCtrl.text = widget.noteData!['description'] ?? '';
+
+      descCtrl.text =
+          widget.noteData!['description'] ?? '';
+
       existingFileName =
           widget.noteData!['fileName']?.toString() ??
-          getCleanName(widget.noteData!['fileUrl']?.toString() ?? '');
-      academic.subject = widget.noteData!['subject'] ?? '';
-      academic.university = widget.noteData!['university'];
-      academic.location = widget.noteData!['location'];
-      academic.department = widget.noteData!['department'];
-      academic.semester = widget.noteData!['semester'];
-      String doc = (widget.noteData?['category'] ?? "").toString().trim();
-      selectedTypeofDocument = typeofDocument.contains(doc) ? doc : null;
+              getCleanName(
+                widget.noteData!['fileUrl']?.toString() ?? '',
+              );
+
+      academic.subject =
+          widget.noteData!['subject'] ?? '';
+
+      academic.university =
+      widget.noteData!['university'];
+
+      academic.location =
+      widget.noteData!['location'];
+
+      academic.department =
+      widget.noteData!['department'];
+
+      academic.semester =
+      widget.noteData!['semester'];
+
+      String doc =
+      (widget.noteData?['category'] ?? '')
+          .toString()
+          .trim();
+
+      selectedTypeofDocument =
+      typeofDocument.contains(doc) ? doc : null;
     }
+
     print(widget.noteData);
   }
 
-  // Upload note
+  // ============================================================
+  // PICK FILE
+  // ============================================================
   Future<void> _pickFile() async {
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: false,
       type: FileType.any,
+
+      // IMPORTANT FOR WEB
+      // Get actual file bytes from browser.
+      withData: true,
     );
 
-    if (result != null && result.files.single.path != null) {
-      final file = File(result.files.single.path!);
-      final fileSize = await file.length();
+    // User cancelled file picker
+    if (result == null) return;
 
-      if (fileSize > NoteUploadService.maxFileSize) {
-        setState(() {
-          selectedFile = file;
-          isFileValid = false;
-        });
+    final file = result.files.single;
 
-        if (!mounted) return;
+    // ==========================================================
+    // CHECK FILE BYTES
+    // == as BuildContext========================================================
+    if (file.bytes == null) {
+      if (!mounted) return;
 
-        ScaffoldMessenger.of(context as BuildContext).showSnackBar(
-          const SnackBar(
-            content: Text('File size must be 10 MB or less.'),
-            backgroundColor: Colors.red,
+      ScaffoldMessenger.of(context as BuildContext).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Unable to read selected file.",
           ),
-        );
+          backgroundColor: Colors.red,
+        ),
+      );
 
-        return;
-      }
+      return;
+    }
 
+    // ==========================================================
+    // FILE SIZE
+    // ==========================================================
+    final fileSize = file.bytes!.length;
+
+    // ==========================================================
+    // MAX 10 MB
+    // ==========================================================
+    if (fileSize > NoteUploadService.maxFileSize) {
       setState(() {
         selectedFile = file;
-        isFileValid = true;
+        isFileValid = false;
       });
 
-      debugPrint("FILE PICKED: ${file.path}");
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context as BuildContext).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "File size must be 10 MB or less.",
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+
+      return;
     }
+
+    // ==========================================================
+    // VALID FILE
+    // ==========================================================
+    setState(() {
+      selectedFile = file;
+      isFileValid = true;
+    });
+
+    debugPrint(
+      "FILE PICKED: ${file.name}",
+    );
+
+    debugPrint(
+      "FILE SIZE: ${fileSize / (1024 * 1024)} MB",
+    );
   }
 
+  // ============================================================
+  // UPLOAD / UPDATE NOTE
+  // ============================================================
   Future<void> _uploadNote(BuildContext context) async {
+    // ==========================================================
+    // VALIDATE FORM
+    // ==========================================================
     if (titleCtrl.text.trim().isEmpty ||
         academic.university == null ||
         academic.location == null ||
         academic.department == null ||
         academic.semester == null ||
         academic.subject == null ||
-        (widget.isEdit == false && (selectedFile == null || !isFileValid)) ||
+        (widget.isEdit == false &&
+            (selectedFile == null ||
+                !isFileValid ||
+                selectedFile!.bytes == null)) ||
         selectedTypeofDocument == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please fill all fields'),
+          content: Text(
+            'Please fill all fields',
+          ),
           backgroundColor: Colors.red,
         ),
       );
+
       return;
     }
 
-    setState(() => isUploading = true);
+    setState(() {
+      isUploading = true;
+    });
 
-    /// EDIT MODE
+    // ==========================================================
+    // EDIT MODE
+    // ==========================================================
     if (widget.isEdit && widget.noteId != null) {
-      // CASE 1: USER  select NEW FILE
-      if (selectedFile != null) {
-        final result = await NoteUploadService.uploadNote(
-          file: selectedFile!,
+      // ========================================================
+      // CASE 1: USER SELECTED A NEW FILE
+      // ========================================================
+      if (selectedFile != null &&
+          selectedFile!.bytes != null) {
+        final result =
+        await NoteUploadService.uploadNote(
+          fileName: selectedFile!.name,
+          fileBytes: selectedFile!.bytes!,
           title: titleCtrl.text.trim(),
-          university: normalize(academic.university!),
-          location: normalize(academic.location!),
-          department: normalize(academic.department!),
-          subject: normalize(academic.subject!),
-          semester: academic.semester!,
-          resourceType: selectedTypeofDocument!,
+          university:
+          normalize(academic.university!),
+          location:
+          normalize(academic.location!),
+          department:
+          normalize(academic.department!),
+          subject:
+          normalize(academic.subject!),
+          semester:
+          academic.semester!,
+          resourceType:
+          selectedTypeofDocument!,
           noteId: widget.noteId,
         );
 
-        setState(() => isUploading = false); //  ALWAYS STOP LOADER
+        setState(() {
+          isUploading = false;
+        });
 
         if (!mounted) return;
 
         if (result['success'] == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("Note updated successfully"),
+              content: Text(
+                "Note updated successfully",
+              ),
               backgroundColor: Colors.green,
             ),
           );
@@ -180,56 +298,100 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
           );
         }
       }
-      //  CASE 2: text update
+
+      // ========================================================
+      // CASE 2: TEXT ONLY UPDATE
+      // ========================================================
       else {
         await FirebaseFirestore.instance
             .collection('notes')
             .doc(widget.noteId)
             .update({
-              'title': titleCtrl.text.trim(),
-              'description': descCtrl.text.trim(),
-              'subject': academic.subject,
-              'university': academic.university,
-              'location': academic.location,
-              'department': academic.department,
-              'semester': academic.semester!,
-              'resourceType': selectedTypeofDocument,
-              'updatedAt': FieldValue.serverTimestamp(),
-            });
-      }
-    }
-    // NEW NOTE upload
-    else {
-      final result = await NoteUploadService.uploadNote(
-        file: selectedFile!,
-        title: titleCtrl.text.trim(),
-        university: normalize(academic.university!),
-        location: normalize(academic.location!),
-        department: normalize(academic.department!),
-        subject: normalize(academic.subject!),
-        semester: academic.semester!,
-        resourceType: selectedTypeofDocument!,
-      );
+          'title': titleCtrl.text.trim(),
+          'description': descCtrl.text.trim(),
+          'subject': academic.subject,
+          'university': academic.university,
+          'location': academic.location,
+          'department': academic.department,
+          'semester': academic.semester!,
+          'resourceType': selectedTypeofDocument,
+          'updatedAt':
+          FieldValue.serverTimestamp(),
+        });
 
-      await _ensureUniversityHasLocation();
+        setState(() {
+          isUploading = false;
+        });
 
-      setState(() => isUploading = false);
-
-      if (!mounted) return;
-
-      if (result['duplicate'] == true) {
-        setState(() => isUploading = false);
+        if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("File already exists"),
+            content: Text(
+              "Note updated successfully",
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        Navigator.pop(context);
+      }
+    }
+
+    // ==========================================================
+    // NEW NOTE UPLOAD
+    // ==========================================================
+    else {
+      final result =
+      await NoteUploadService.uploadNote(
+        fileName: selectedFile!.name,
+        fileBytes: selectedFile!.bytes!,
+        title: titleCtrl.text.trim(),
+        university:
+        normalize(academic.university!),
+        location:
+        normalize(academic.location!),
+        department:
+        normalize(academic.department!),
+        subject:
+        normalize(academic.subject!),
+        semester:
+        academic.semester!,
+        resourceType:
+        selectedTypeofDocument!,
+      );
+
+      // ========================================================
+      // UPDATE UNIVERSITY LOCATION
+      // ========================================================
+      await _ensureUniversityHasLocation();
+
+      setState(() {
+        isUploading = false;
+      });
+
+      if (!mounted) return;
+
+      // ========================================================
+      // DUPLICATE FILE
+      // ========================================================
+      if (result['duplicate'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "File already exists",
+            ),
             backgroundColor: Colors.orange,
           ),
         );
-        return;
-      } else if (result['success'] == true) {
-        setState(() => isUploading = false);
 
+        return;
+      }
+
+      // ========================================================
+      // SUCCESS
+      // ========================================================
+      else if (result['success'] == true) {
         final status = result['status'];
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -244,50 +406,84 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
         );
 
         Navigator.pop(context);
-      } else {
-        setState(() => isUploading = false);
+      }
 
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("Upload failed")));
+      // ========================================================
+      // FAILED
+      // ========================================================
+      else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Upload failed"),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
 
+  // ============================================================
+  // ENSURE UNIVERSITY HAS LOCATION
+  // ============================================================
   Future<void> _ensureUniversityHasLocation() async {
     final db = FirebaseFirestore.instance;
 
     final snap = await db
         .collection('universities')
-        .where('name', isEqualTo: academic.university)
+        .where(
+      'name',
+      isEqualTo: academic.university,
+    )
         .get();
 
     if (snap.docs.isEmpty) return;
 
     final doc = snap.docs.first;
 
-    final loc = normalize(academic.location!);
+    final loc = normalize(
+      academic.location!,
+    );
 
-    await doc.reference.set({
-      'location': FieldValue.arrayUnion([loc]),
-    }, SetOptions(merge: true));
+    await doc.reference.set(
+      {
+        'location': FieldValue.arrayUnion([loc]),
+      },
+      SetOptions(merge: true),
+    );
   }
 
-  // For displaying Clean Name to User (when Edit button Click)
-
+  // ============================================================
+  // CLEAN FILE NAME
+  // ============================================================
   String getCleanName(String url) {
     final name = basename(url);
-    return name.replaceFirst(RegExp(r'^\d+-'), '');
+
+    return name.replaceFirst(
+      RegExp(r'^\d+-'),
+      '',
+    );
   }
 
+  // ============================================================
+  // BUILD UI
+  // ============================================================
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         Scaffold(
-          backgroundColor: const Color(0xFFF4F6F8),
+          backgroundColor:
+          const Color(0xFFF4F6F8),
+
+          // ====================================================
+          // APP BAR
+          // ====================================================
           appBar: AppBar(
-            title: Text(widget.isEdit ? 'Edit Note' : 'Upload Note'),
+            title: Text(
+              widget.isEdit
+                  ? 'Edit Note'
+                  : 'Upload Note',
+            ),
             backgroundColor: Colors.lightBlue,
             foregroundColor: Colors.white,
             actions: [
@@ -305,11 +501,17 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
               ),
             ],
           ),
+
+          // ====================================================
+          // BODY
+          // ====================================================
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                /// ================= ACADEMIC INFO =================
+                // ==================================================
+                // ACADEMIC INFORMATION
+                // ==================================================
                 _card(
                   title: 'Academic Information',
                   child: AcademicInfoForm(
@@ -321,25 +523,48 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
                     },
                   ),
                 ),
+
+                // ==================================================
+                // DOCUMENT TYPE
+                // ==================================================
                 _card(
                   title: 'Document Type',
-                  child: DropdownButtonFormField<String>(
-                    value: typeofDocument.contains(selectedTypeofDocument)
+                  child:
+                  DropdownButtonFormField<String>(
+                    value:
+                    typeofDocument.contains(
+                      selectedTypeofDocument,
+                    )
                         ? selectedTypeofDocument
                         : null,
-                    decoration: const InputDecoration(labelText: 'Select Type'),
+
+                    decoration:
+                    const InputDecoration(
+                      labelText: 'Select Type',
+                    ),
+
                     items: typeofDocument
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .map(
+                          (e) =>
+                          DropdownMenuItem(
+                            value: e,
+                            child: Text(e),
+                          ),
+                    )
                         .toList(),
+
                     onChanged: (v) {
                       setState(() {
-                        selectedTypeofDocument = v;
+                        selectedTypeofDocument =
+                            v;
                       });
                     },
                   ),
                 ),
 
-                /// ================= FILE UPLOAD =================
+                // ==================================================
+                // FILE UPLOAD
+                // ==================================================
                 _card(
                   title: 'Upload File',
                   child: GestureDetector(
@@ -347,94 +572,139 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
                     child: Container(
                       height: 170,
                       width: double.infinity,
+
                       decoration: BoxDecoration(
                         color: selectedFile != null
-                            ? Colors.green.withOpacity(0.05)
+                            ? Colors.green
+                            .withOpacity(0.05)
                             : Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(12),
+
+                        borderRadius:
+                        BorderRadius.circular(12),
+
                         border: Border.all(
                           color: selectedFile != null
                               ? Colors.green
                               : Colors.grey.shade400,
                         ),
                       ),
+
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment:
+                        MainAxisAlignment.center,
+
                         children: [
+                          // ==================================================
+                          // FILE ICON
+                          // ==================================================
                           Icon(
-                            selectedFile != null && isFileValid
+                            selectedFile != null &&
+                                isFileValid
                                 ? Icons.check_circle
                                 : selectedFile != null
                                 ? Icons.cancel
                                 : Icons.cloud_upload,
+
                             size: 55,
-                            color: selectedFile != null && isFileValid
+
+                            color: selectedFile !=
+                                null &&
+                                isFileValid
                                 ? Colors.green
                                 : selectedFile != null
                                 ? Colors.red
                                 : Colors.grey,
                           ),
+
                           const SizedBox(height: 10),
 
-                          //  FILE NAME
+                          // ==================================================
+                          // FILE NAME
+                          // ==================================================
                           Text(
                             selectedFile != null
-                                ? basename(selectedFile!.path)
-                                : existingFileName != null &&
-                                      existingFileName!.isNotEmpty
+                                ? selectedFile!.name
+                                : existingFileName !=
+                                null &&
+                                existingFileName!
+                                    .isNotEmpty
                                 ? existingFileName!
                                 : 'Tap to upload PDF or Image\nMaximum size: 10 MB',
-                            textAlign: TextAlign.center,
+
+                            textAlign:
+                            TextAlign.center,
+
                             maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+
+                            overflow:
+                            TextOverflow.ellipsis,
+
                             style: TextStyle(
                               fontSize: 14,
+
                               fontWeight:
-                                  selectedFile != null ||
-                                      existingFileName != null
+                              selectedFile !=
+                                  null ||
+                                  existingFileName !=
+                                      null
                                   ? FontWeight.w600
                                   : FontWeight.normal,
-                              color: selectedFile != null
+
+                              color: selectedFile !=
+                                  null
                                   ? Colors.green.shade700
-                                  : existingFileName != null
-                                  ? Colors.blue.shade700
+                                  : existingFileName !=
+                                  null
+                                  ? Colors.blue
+                                  .shade700
                                   : Colors.black54,
                             ),
                           ),
-                          if (selectedFile != null) ...[
+
+                          // ==================================================
+                          // FILE SIZE
+                          // ==================================================
+                          if (selectedFile != null &&
+                              selectedFile!.bytes !=
+                                  null) ...[
                             const SizedBox(height: 4),
-                            FutureBuilder<int>(
-                              future: selectedFile!.length(),
-                              builder: (context, snapshot) {
-                                if (!snapshot.hasData) return const SizedBox();
 
-                                final sizeMB = snapshot.data! / (1024 * 1024);
+                            Text(
+                              isFileValid
+                                  ? '${(selectedFile!.bytes!.length / (1024 * 1024)).toStringAsFixed(1)} MB • Valid file'
+                                  : '${(selectedFile!.bytes!.length / (1024 * 1024)).toStringAsFixed(1)} MB • Maximum size is 10 MB',
 
-                                return Text(
-                                  isFileValid
-                                      ? '${sizeMB.toStringAsFixed(1)} MB • Valid file'
-                                      : '${sizeMB.toStringAsFixed(1)} MB • Maximum size is 10 MB',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: isFileValid
-                                        ? Colors.green
-                                        : Colors.red,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                );
-                              },
+                              style: TextStyle(
+                                fontSize: 12,
+
+                                color: isFileValid
+                                    ? Colors.green
+                                    : Colors.red,
+
+                                fontWeight:
+                                FontWeight.w500,
+                              ),
                             ),
                           ],
 
-                          // REMOVE BUTTON (IMPORTANT UX)
-                          if (selectedFile != null) ...[
+                          // ==================================================
+                          // REMOVE BUTTON
+                          // ==================================================
+                          if (selectedFile !=
+                              null) ...[
                             const SizedBox(height: 8),
+
                             GestureDetector(
                               onTap: () {
                                 setState(() {
-                                  selectedFile = null;
+                                  selectedFile =
+                                  null;
+
+                                  isFileValid =
+                                  false;
                                 });
                               },
+
                               child: const Text(
                                 "Remove",
                                 style: TextStyle(
@@ -449,24 +719,33 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 20),
 
-                /// ================= NOTE DETAILS =================
+                // ==================================================
+                // NOTE DETAILS
+                // ==================================================
                 _card(
                   title: 'Note Details',
                   child: Column(
                     children: [
                       TextField(
                         controller: titleCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Note Title',
+                        decoration:
+                        const InputDecoration(
+                          labelText:
+                          'Note Title',
                         ),
                       ),
+
                       const SizedBox(height: 12),
+
                       TextField(
                         controller: descCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Description (Optional)',
+                        decoration:
+                        const InputDecoration(
+                          labelText:
+                          'Description (Optional)',
                         ),
                         maxLines: 3,
                       ),
@@ -477,25 +756,40 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
             ),
           ),
         ),
+
+        // ========================================================
+        // UPLOADING LOADER
+        // ========================================================
         if (isUploading)
           Center(
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding:
+              const EdgeInsets.all(16),
+
               decoration: BoxDecoration(
                 color: Colors.lightBlue.shade400,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius:
+                BorderRadius.circular(12),
               ),
+
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisSize:
+                MainAxisSize.min,
+
                 children: const [
                   CircularProgressIndicator(
                     strokeWidth: 2,
                     color: Colors.white,
                   ),
+
                   SizedBox(height: 10),
+
                   Text(
                     "Uploading Notes...",
-                    style: TextStyle(fontSize: 15, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.white,
+                    ),
                   ),
                 ],
               ),
@@ -505,21 +799,42 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
     );
   }
 
-  /// ================= CARD HELPER =================
-  Widget _card({required String title, required Widget child}) {
+  // ============================================================
+  // CARD HELPER
+  // ============================================================
+  Widget _card({
+    required String title,
+    required Widget child,
+  }) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+
+      shape: RoundedRectangleBorder(
+        borderRadius:
+        BorderRadius.circular(12),
+      ),
+
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding:
+        const EdgeInsets.all(16),
+
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+          CrossAxisAlignment.start,
+
           children: [
             Text(
               title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight:
+                FontWeight.bold,
+              ),
             ),
+
             const Divider(),
+
             child,
           ],
         ),
@@ -527,10 +842,14 @@ class _UploadNoteScreenState extends State<UploadNoteScreen> {
     );
   }
 
+  // ============================================================
+  // DISPOSE
+  // ============================================================
   @override
   void dispose() {
     titleCtrl.dispose();
     descCtrl.dispose();
+
     super.dispose();
   }
 }

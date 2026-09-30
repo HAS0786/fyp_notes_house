@@ -21,16 +21,26 @@ class AdminNotesScreen extends StatelessWidget {
   Future<void> approveNote(String noteId) async {
     final token = await _getToken();
 
-    await http.post(
+    final response = await http.post(
       Uri.parse("$baseUrl/approve-note"),
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",
       },
-      body: jsonEncode({"noteId": noteId}),
+      body: jsonEncode({
+        "noteId": noteId,
+      }),
     );
-  }
 
+    debugPrint("APPROVE STATUS: ${response.statusCode}");
+    debugPrint("APPROVE BODY: ${response.body}");
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        "Approve failed (${response.statusCode}): ${response.body}",
+      );
+    }
+  }
   Future<void> openFile(BuildContext context, String url, String title) async {
     //  Web / Laptop
     if (kIsWeb) {
@@ -142,8 +152,6 @@ class AdminNotesScreen extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          /// ACTION BUTTONS
-          /// ACTION BUTTONS
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
